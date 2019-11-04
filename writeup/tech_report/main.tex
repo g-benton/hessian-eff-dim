@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+
+\title{Hess Trucks: Leveraging Eigenspaces in Optimizing Deep Networks}
+\author{Jayson P. Salkey, Greg W. Benton}
+\date{November 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+\section{Hypothesis}
+%As you train a neural network the eigengap of the covariance matrix widens. Seen with the NTK and the Fisher of a Neural Network on CIFAR 10 by Wesley. %Ng et al. suggests that a small eigengap leads to an instable solution. Shawe-Taylor et al. suggests that such an eigengap can be induced over a random %sample with kernel-PCA. The eigenvalues concentrate exponentially fast with the number of data-samples, or the right kernel.
+
+%Spectral Clustering is another method that attempts to create large eigengaps in terms of a graph Laplacian.
+
+%Apparently Normalized Kernel-k-means is normalized cut?
+
+%Does optimizing an over-parametrized model make it easier to find covariances (kernels) which maximize the eigengap? Seems so....
+
+%Perhaps need to look into empirical analysis of the Hessian. Look and see if the Density of the eigenvalues of the Hessian or NTK is spiking and decays incredibly fast.
+
+%Does this suggest that more volume in solutions leads to easier way to widen the eigengap?
+%GPs do this naturally by selecting a decent kernel like an RBF which forces the decay of the eigenvalues to be fast (wide) and the log determinant of $K$ drives the irrelevance to zero.
+
+
+
+
+
+
+\section{Math}
+
+\section{Experiments}
+
+\section{Conclusions}
+
+\end{document}
