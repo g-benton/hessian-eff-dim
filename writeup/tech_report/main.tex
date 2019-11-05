@@ -31,8 +31,19 @@ Parallels have been drawn between Kernel K-means and Spectral clustering (Wellin
 	\item We observe the eigenvalues of $F$ to increase through training explaining why the eigenvalues of $H$ grow through training.
 	\item In the infinite width limit, $tr(S) \rightarrow 0$ and decays through training (e.g. Jacot et al 2019).
 	\item If we are wide enough for NTK style dynamics to hold, the posterior covariance will correspond to a null-space in $p-n$ directions.
+	\item Shawe-Taylor et al. suggests that such a separation of eigenvalues can be induced over a random sample with kernel-PCA. The eigenvalues concentrate exponentially fast with the number of data-samples, or the right kernel.
+	\subitem Perhaps such a kernel could be equivalent to the NTK or something like it.
 \end{itemize}
 
+\section{Questions}
+\begin{itemize}
+	\item Does this suggest that more volume in solutions leads to easier way to widen the distance between eigenvalues?
+	\item Connections with GPs?
+	\subitem GPs do this naturally by selecting a decent kernel like an RBF which forces the decay of the eigenvalues to be fast (wide) and the log determinant of $K$ drives the irrelevance to zero.
+	%\item Apparently Normalized Kernel-k-means is normalized cut?
+	%\item Spectral Clustering is another method that attempts to separate eigenvalues in terms of a graph Laplacian.
+	%\item
+\end{itemize}
 %As you train a neural network the eigengap of the covariance matrix widens. Seen with the NTK and the Fisher of a Neural Network on CIFAR 10 by Wesley. %Ng et al. suggests that a small eigengap leads to an instable solution. Shawe-Taylor et al. suggests that such an eigengap can be induced over a random %sample with kernel-PCA. The eigenvalues concentrate exponentially fast with the number of data-samples, or the right kernel.
 
 %Spectral Clustering is another method that attempts to create large eigengaps in terms of a graph Laplacian.
