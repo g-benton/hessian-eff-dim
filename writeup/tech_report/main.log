@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  4 NOV 2019 20:11
+This is pdfTeX, Version 3.14159265-2.6-1.40.19 (TeX Live 2018) (preloaded format=pdflatex 2018.4.16)  4 NOV 2019 20:13
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -252,7 +252,7 @@ pfb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.p
 fb></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy5.pfb
 ></usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb><
 /usr/local/texlive/2018/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on main.pdf (7 pages, 197626 bytes).
+Output written on main.pdf (7 pages, 197785 bytes).
 PDF statistics:
  92 PDF objects out of 1000 (max. 8388607)
  66 compressed objects within 1 object stream
