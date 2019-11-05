@@ -1,0 +1,13 @@
+Metadata-Version: 1.1
+Name: hess
+Version: alpha
+Summary: Repo for Hessian Loss Surface Inference
+Home-page: https://github.com/g-benton/hess_truck
+Author: Salkey, Benton, Maddox
+Author-email: gwb260@nyu.edu
+License: MPL-2.0
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 0
+Classifier: Intended Audience :: Science/Research
+Classifier: Programming Language :: Python :: 3.7
