@@ -5,7 +5,7 @@ from torch import nn
 class SimpleNet(nn.Module):
     """docstring for SimpleNet."""
     def __init__(self, G_dat, D_dat, hidden_size=10, n_hidden=2,
-                activation=torch.nn.ReLU()):
+                activation=torch.nn.ReLU(), bias=False):
         super(SimpleNet, self).__init__()
         self.G_dat = G_dat #inputs in G space
         self.D_dat = D_dat #inputs in D space
@@ -20,13 +20,13 @@ class SimpleNet(nn.Module):
 
         ## initialize the network ##
         module = nn.ModuleList()
-        module.append(nn.Linear(self.input_size, hidden_size))
+        module.append(nn.Linear(self.input_size, hidden_size, bias=bias))
         for ll in range(n_hidden):
             module.append(activation)
-            module.append(nn.Linear(hidden_size, hidden_size))
+            module.append(nn.Linear(hidden_size, hidden_size, bias=bias))
 
         module.append(activation)
-        module.append(nn.Linear(hidden_size, self.output_size))
+        module.append(nn.Linear(hidden_size, self.output_size, bias=bias))
 
         self.sequential = nn.Sequential(*module)
 
