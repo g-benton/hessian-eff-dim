@@ -32,7 +32,7 @@ def gradtensor_to_tensor(net, include_bn=False):
 ################################################################################
 #                  For computing Hessian-vector products
 ################################################################################
-def eval_hess_vec_prod(vec, params, net, criterion, inputs, targets, 
+def eval_hess_vec_prod(vec, params, net, criterion, inputs, targets,
                        use_cuda=False):
     """
     Evaluate product of the Hessian of the loss function with a direction vector "vec".
