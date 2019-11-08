@@ -80,6 +80,7 @@ experiments/*/*.ipynb
 
 # Picture Files
 *.pt
+*.pth
 *.npz
 *.png
 ._*
@@ -118,4 +119,4 @@ graph_nets/hypers_tuning/*/*
 
 
 # dont copy anything from data
-**/data/
+**/cifar10/
