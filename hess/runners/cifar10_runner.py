@@ -17,18 +17,21 @@ def parse():
 def main(argv):
     args = parse()
     epochs = args.epochs
+    cuda_ = torch.cuda.is_available()
+    if cuda_:
+        torch.cuda.set_device(args.gpu)
 
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
     trainset = torchvision.datasets.CIFAR10(root='../data/cifar10', train=True,
-                                            download=True, transform=transform)
+                                            download=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                               shuffle=True, num_workers=2)
 
     testset = torchvision.datasets.CIFAR10(root='../data/cifar10', train=False,
-                                           download=True, transform=transform)
+                                           download=False, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=4,
                                              shuffle=False, num_workers=2)
 
@@ -37,6 +40,9 @@ def main(argv):
 
     ## set up the network ##
     net = cifar_net(num_classes=len(classes), k=128)
+    if cuda_:
+        net = net.cuda()
+
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.001)
@@ -46,6 +52,8 @@ def main(argv):
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            if cuda_:
+                inputs, labels = inputs.cuda(), labels.cuda()
 
             # zero the parameter gradients
             optimizer.zero_grad()
