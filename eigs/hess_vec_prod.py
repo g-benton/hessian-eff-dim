@@ -12,7 +12,7 @@ from torch.autograd import Variable
 
 from gpytorch.utils.lanczos import lanczos_tridiag, lanczos_tridiag_to_diag
 
-from swag.utils import flatten, unflatten_like
+from hess.utils import flatten, unflatten_like
 
 ################################################################################
 #                              Supporting Functions
