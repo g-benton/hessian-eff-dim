@@ -42,11 +42,11 @@ def main(argv):
     net = cifar_net(num_classes=len(classes), k=128)
     if cuda_:
         net = net.cuda()
-
+        print("net on cuda")
 
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(net.parameters(), lr=0.001)
-    for epoch in range(2):  # loop over the dataset multiple times
+    for epoch in range(epochs):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
