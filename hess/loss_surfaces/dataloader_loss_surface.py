@@ -4,7 +4,7 @@ import numpy as np
 from .. import utils
 from .loss_surfaces import get_plane
 
-def get_loss_surface(basis, model,
+def dataloader_loss_surface(basis, model,
                     dataloader,
                     loss=torch.nn.MSELoss(),
                     rng=0.1, n_pts=25, **kwargs):

@@ -59,6 +59,7 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
             inputs, targets = inputs.cuda(), targets.cuda()
 
         outputs = net(inputs)
+        print(targets)
         print(outputs)
         loss = criterion(outputs, targets)
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
