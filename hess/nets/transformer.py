@@ -12,7 +12,6 @@ class Transformer(nn.Module):
         self.y = y
         self.net = net(x, y, **kwargs)
 
-
     def forward(self, x):
         return self.net(x)
 
