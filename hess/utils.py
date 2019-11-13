@@ -32,7 +32,8 @@ def gradtensor_to_tensor(net, include_bn=False):
 ################################################################################
 #                  For computing Hessian-vector products
 ################################################################################
-def eval_hess_vec_prod(vec, params, net, criterion, inputs, targets, 
+def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
+                       dataloader=None,
                        use_cuda=False):
     """
     Evaluate product of the Hessian of the loss function with a direction vector "vec".
@@ -52,27 +53,47 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs, targets,
 
     net.eval()
     net.zero_grad()  # clears grad for every parameter in the net
+    if dataloader is None:
+        inputs, targets = Variable(inputs), Variable(targets)
+        if use_cuda:
+            inputs, targets = inputs.cuda(), targets.cuda()
 
+        outputs = net(inputs)
+        print(targets)
+        print(outputs)
+        loss = criterion(outputs, targets)
+        grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
 
-    inputs, targets = Variable(inputs), Variable(targets)
-    if use_cuda:
-        inputs, targets = inputs.cuda(), targets.cuda()
+        # Compute inner product of gradient with the direction vector
+        # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
+        prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
+        for (g, v) in zip(grad_f, vec):
+            prod = prod + (g * v).sum()
 
-    outputs = net(inputs)
-    loss = criterion(outputs, targets)
-    grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
+        # Compute the Hessian-vector product, H*v
+        # prod.backward() computes dprod/dparams for every parameter in params and
+        # accumulate the gradients into the params.grad attributes
+        prod.backward()
+    else:
+        for batch_idx, (inputs, targets) in enumerate(dataloader):
+            inputs, targets = Variable(inputs), Variable(targets)
+            if use_cuda:
+                inputs, targets = inputs.cuda(), targets.cuda()
 
-    # Compute inner product of gradient with the direction vector
-    # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
-    prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
-    for (g, v) in zip(grad_f, vec):
-        prod = prod + (g * v).sum()
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+            grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
 
-    # Compute the Hessian-vector product, H*v
-    # prod.backward() computes dprod/dparams for every parameter in params and
-    # accumulate the gradients into the params.grad attributes
-    prod.backward()
+            # Compute inner product of gradient with the direction vector
+            # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
+            prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
+            for (g, v) in zip(grad_f, vec):
+                prod = prod + (g * v).sum()
 
+            # Compute the Hessian-vector product, H*v
+            # prod.backward() computes dprod/dparams for every parameter in params and
+            # accumulate the gradients into the params.grad attributes
+            prod.backward()
 def flatten(lst):
     tmp = [i.contiguous().view(-1, 1) for i in lst]
     return torch.cat(tmp).view(-1)
