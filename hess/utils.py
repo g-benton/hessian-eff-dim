@@ -12,6 +12,7 @@ def unflatten_like(vector, likeTensorList):
     outList = []
     i = 0
     for tensor in likeTensorList:
+        # print(tensor.numel())
         # n = module._parameters[name].numel()
         n = tensor.numel()
         outList.append(vector[:, i : i + n].view(tensor.shape))
@@ -51,7 +52,7 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
         net.cuda()
         vec = [v.cuda() for v in vec]
 
-    net.eval()
+#     net.eval()
     net.zero_grad()  # clears grad for every parameter in the net
     if dataloader is None:
         inputs, targets = Variable(inputs), Variable(targets)
@@ -59,8 +60,8 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
             inputs, targets = inputs.cuda(), targets.cuda()
 
         outputs = net(inputs)
-        print(targets)
-        print(outputs)
+#         print(targets)
+#         print(outputs)
         loss = criterion(outputs, targets)
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
 
