@@ -26,9 +26,10 @@ class MoonNet(nn.Module):
             module.append(nn.Linear(hidden_size, hidden_size, bias=bias))
         
         module.append(nn.Linear(hidden_size, 1, bias=bias))
-        module.append(nn.Sigmoid())
 
         self.sequential = nn.Sequential(*module)
 
-    def forward(self, x):
-        return self.sequential(x)
+    def forward(self, x, temp=1.):
+        res = self.sequential(x)
+        res = res.div(temp)
+        return nn.functional.sigmoid(res)
