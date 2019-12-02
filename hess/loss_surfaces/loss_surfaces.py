@@ -6,7 +6,8 @@ from .. import utils
 def get_loss_surface(basis, model,
                     train_x, train_y,
                     loss=torch.nn.MSELoss(),
-                    rng=0.1, n_pts=25, **kwargs):
+                    rng=0.1, n_pts=25,
+                    use_cuda=False, **kwargs):
 
     start_pars = model.state_dict()
     ## get out the plane ##
@@ -22,7 +23,10 @@ def get_loss_surface(basis, model,
             perturb = dir1.mul(vec_len[ii]) + dir2.mul(vec_len[jj])
             perturb = utils.unflatten_like(perturb.t(), model.parameters())
             for i, par in enumerate(model.parameters()):
-                par.data = par.data + perturb[i]
+                if use_cuda:
+                    par.data = par.data + perturb[i].cuda()
+                else:
+                    par.data = par.data + perturb[i]
 
             output = model(train_x)
             loss_surf[ii, jj] = loss(output, train_y)

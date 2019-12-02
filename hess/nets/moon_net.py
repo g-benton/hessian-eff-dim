@@ -30,6 +30,7 @@ class MoonNet(nn.Module):
         self.sequential = nn.Sequential(*module)
 
     def forward(self, x, temp=1.):
-        res = self.sequential(x)
-        res = res.div(temp)
-        return nn.functional.sigmoid(res)
+        return self.sequential(x)
+#         res = self.sequential(x)
+#         res = res.div(temp)
+#         return torch.sigmoid(res)
