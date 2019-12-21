@@ -1,12 +1,13 @@
 import torch
 import math
 from torch import nn
+from .masked_layer import MaskedLayer
 
-class MaskNet(nn.Module):
+class MaskedNet(nn.Module):
     """docstring for SimpleNet."""
     def __init__(self, x, y, hidden_size=10, n_hidden=2,
-                activation=torch.nn.ReLU(), bias=False):
-        super(MaskNet, self).__init__()
+                activation=torch.nn.ReLU(), bias=False, pct_keep=0.6):
+        super(MaskedNet, self).__init__()
         self.x = x #inputs in G space
         self.y = y #inputs in D space
         if self.x.ndim == 1:
@@ -20,17 +21,17 @@ class MaskNet(nn.Module):
 
         ## initialize the network ##
         module = nn.ModuleList()
-        module.append(nn.Linear(self.input_size, hidden_size, bias=bias))
+        module.append(MaskedLayer(self.input_size, hidden_size, bias=bias,
+                                  pct_keep=pct_keep))
         for ll in range(n_hidden-1):
             module.append(activation)
-            module.append(nn.Linear(hidden_size, hidden_size, bias=bias))
+            module.append(MaskedLayer(hidden_size, hidden_size, bias=bias,
+                                      pct_keep=pct_keep))
 
-        module.append(nn.Linear(hidden_size, 1, bias=bias))
+        module.append(MaskedLayer(hidden_size, 1, bias=bias,
+                                  pct_keep=pct_keep))
 
         self.sequential = nn.Sequential(*module)
 
-    def forward(self, x, temp=1.):
+    def forward(self, x):
         return self.sequential(x)
-#         res = self.sequential(x)
-#         res = res.div(temp)
-#         return torch.sigmoid(res)
