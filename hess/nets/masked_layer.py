@@ -1,3 +1,4 @@
+import math
 import torch
 import torch.nn as nn
 from torch.nn import Module, init
@@ -12,7 +13,8 @@ class MaskedLayer(Module):
         self.in_features = in_features
         self.out_features = out_features
         self.weight = Parameter(torch.Tensor(out_features, in_features))
-        if bias:
+        self.has_bias = bias
+        if self.has_bias:
             self.bias = Parameter(torch.Tensor(out_features))
         else:
             self.register_parameter('bias', None)
@@ -20,7 +22,7 @@ class MaskedLayer(Module):
 
         dist = torch.distributions.Bernoulli(pct_keep)
         self.mask = dist.sample(sample_shape=torch.Size(self.weight.shape))
-        if bias:
+        if self.has_bias:
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
     def reset_parameters(self):
@@ -32,8 +34,13 @@ class MaskedLayer(Module):
 
 
     def forward(self, input):
-        return F.linear(input, self.weight * self.mask,
-                        self.bias * self.bias_mask)
+        if self.has_bias:
+            return F.linear(input, self.weight * self.mask,
+                            self.bias * self.bias_mask)
+        else:
+            return F.linear(input, self.weight * self.mask,
+                            None)
+
 
 
     def extra_repr(self):

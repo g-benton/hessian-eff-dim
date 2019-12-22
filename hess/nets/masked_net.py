@@ -28,6 +28,8 @@ class MaskedNet(nn.Module):
             module.append(MaskedLayer(hidden_size, hidden_size, bias=bias,
                                       pct_keep=pct_keep))
 
+
+        module.append(activation)
         module.append(MaskedLayer(hidden_size, 1, bias=bias,
                                   pct_keep=pct_keep))
 
