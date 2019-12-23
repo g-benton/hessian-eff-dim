@@ -1,6 +1,7 @@
 import torch
 import time
 import numpy as np
+import hess
 from torch import nn
 from torch.autograd import Variable
 
@@ -98,3 +99,48 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
 def flatten(lst):
     tmp = [i.contiguous().view(-1, 1) for i in lst]
     return torch.cat(tmp).view(-1)
+
+#####################################################
+# Gets the mask as a torch tensor from a masked net #
+#####################################################
+def get_mask(net):
+    mask_list = []
+    for lyr in net.sequential:
+        if isinstance(lyr, hess.nets.MaskedLayer):
+            mask_list.append(lyr.mask)
+
+    return hess.utils.flatten(mask_list)
+
+#############################
+# Return Hessian of a model #
+#############################
+
+def get_hessian(train_x, train_y, loss, model, use_cuda=False):
+    n_par = sum(torch.numel(p) for p in model.parameters())
+    hessian = torch.zeros(n_par, n_par)
+    if use_cuda:
+        model = model.cuda()
+    else:
+        model = model.cpu()
+
+    for pp in range(n_par):
+        base_vec = torch.zeros(n_par).unsqueeze(0)
+        if use_cuda:
+            base_vec = base_vec.cuda()
+            model = model.cuda()
+
+        base_vec[0, pp] = 1.
+
+        base_vec = unflatten_like(base_vec, model.parameters())
+        eval_hess_vec_prod(base_vec, model.parameters(),
+                                net=model,
+                                criterion=torch.nn.BCEWithLogitsLoss(),
+                                inputs=train_x, targets=train_y)
+        if pp == 0:
+            output = gradtensor_to_tensor(model, include_bn=True)
+            hessian = torch.zeros(output.nelement(), output.nelement())
+            hessian[:, pp] = output
+
+        hessian[:, pp] = gradtensor_to_tensor(model, include_bn=True)
+
+    return hessian
