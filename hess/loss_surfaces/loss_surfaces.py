@@ -21,6 +21,7 @@ def get_loss_surface(basis, model,
     for ii in range(n_pts):
         for jj in range(n_pts):
             perturb = dir1.mul(vec_len[ii]) + dir2.mul(vec_len[jj])
+            # print(perturb.shape)
             perturb = utils.unflatten_like(perturb.t(), model.parameters())
             for i, par in enumerate(model.parameters()):
                 if use_cuda:
