@@ -61,8 +61,6 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
             inputs, targets = inputs.cuda(), targets.cuda()
 
         outputs = net(inputs)
-#         print(targets)
-#         print(outputs)
         loss = criterion(outputs, targets)
         grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
 
@@ -109,7 +107,7 @@ def get_mask(net):
         if isinstance(lyr, hess.nets.MaskedLayer):
             mask_list.append(lyr.mask)
 
-    return hess.utils.flatten(mask_list)
+    return flatten(mask_list)
 
 #############################
 # Return Hessian of a model #
@@ -134,7 +132,7 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
         base_vec = unflatten_like(base_vec, model.parameters())
         eval_hess_vec_prod(base_vec, model.parameters(),
                                 net=model,
-                                criterion=torch.nn.BCEWithLogitsLoss(),
+                                criterion=loss,
                                 inputs=train_x, targets=train_y)
         if pp == 0:
             output = gradtensor_to_tensor(model, include_bn=True)
@@ -144,3 +142,24 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
         hessian[:, pp] = gradtensor_to_tensor(model, include_bn=True)
 
     return hessian
+
+def mask_model(model, pct_keep, use_cuda=False):
+    n_par = sum(torch.numel(p) for p in model.parameters())
+    n_keep = int(pct_keep * n_par)
+
+    mask = [1 for i in range(n_keep)] + [0 for i in range(n_par - n_keep)]
+    mask = torch.tensor(mask)
+    perm = np.random.permutation(n_par)
+    mask = mask[perm]
+    if use_cuda:
+        mask = mask.cuda()
+
+    mask = unflatten_like(mask.unsqueeze(0), model.parameters())
+
+    mask_ind = 0
+    for lyr in model.sequential:
+        if isinstance(lyr, hess.nets.MaskedLayer):
+            lyr.mask = mask[mask_ind]
+            mask_ind += 1
+
+    return flatten(mask), perm
