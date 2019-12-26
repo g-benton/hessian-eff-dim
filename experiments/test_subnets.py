@@ -40,7 +40,7 @@ def main():
 
     for trial in range(n_trials):
         model = hess.nets.MaskedNet(train_x, train_y, bias=True,
-                                    n_hidden=5, pct_keep=0.65)
+                                    n_hidden=5, pct_keep=0.75)
         if use_cuda:
             model = model.cuda()
         mask = utils.get_mask(model)
