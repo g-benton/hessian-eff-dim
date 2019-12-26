@@ -17,6 +17,7 @@ def twospirals(n_points, noise=.5, random_state=920):
             np.hstack((np.zeros(n_points),np.ones(n_points))))
 
 def main():
+
     X, Y = twospirals(500, noise=1.3)
     train_x = torch.FloatTensor(X)
     train_y = torch.FloatTensor(Y).unsqueeze(-1)
@@ -35,23 +36,19 @@ def main():
     losses = torch.zeros(n_trials, n_iters)
     init_eigs = []
     final_eigs = []
-    pct_keep = 0.7
     optim = torch.optim.Adam
 
     for trial in range(n_trials):
         model = hess.nets.MaskedNet(train_x, train_y, bias=True,
-                                    n_hidden=5, hidden_size=10, pct_keep=pct_keep)
-        # model = hess.nets.MaskedNet(train_x, train_y, bias=True,
-        #                     n_hidden=5, pct_keep=0.65)
-
+                                    n_hidden=5, pct_keep=0.65)
         if use_cuda:
             model = model.cuda()
-        mask, perm = hess.utils.mask_model(model, pct_keep, use_cuda)
+        mask = utils.get_mask(model)
         keepers = np.array(np.where(mask.cpu() == 1))[0]
 
         ## compute hessian pre-training ##
         hessian = utils.get_hessian(train_x, train_y, loss=loss_func,
-                             model=model, use_cuda=use_cuda)
+                             model=model, use_cuda=True)
         sub_hess = hessian[np.ix_(keepers, keepers)]
         e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
         init_eigs.append(e_val.real)
@@ -70,7 +67,7 @@ def main():
 
         ## compute final hessian ##
         hessian = utils.get_hessian(train_x, train_y, loss=loss_func,
-                             model=model, use_cuda=use_cuda)
+                             model=model, use_cuda=True)
         sub_hess = hessian[np.ix_(keepers, keepers)]
         e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
         final_eigs.append(e_val.real)
