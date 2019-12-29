@@ -106,6 +106,8 @@ def get_mask(net):
     for lyr in net.sequential:
         if isinstance(lyr, hess.nets.MaskedLayer):
             mask_list.append(lyr.mask)
+            if lyr.has_bias:
+                mask_list.append(lyr.bias_mask)
 
     return flatten(mask_list)
 
@@ -161,5 +163,8 @@ def mask_model(model, pct_keep, use_cuda=False):
         if isinstance(lyr, hess.nets.MaskedLayer):
             lyr.mask = mask[mask_ind]
             mask_ind += 1
+            if lyr.has_bias:
+                lyr.bias_mask = mask[mask_ind]
+                mask_ind += 1
 
     return flatten(mask), perm

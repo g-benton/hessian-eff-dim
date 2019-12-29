@@ -25,6 +25,8 @@ class MaskedLayer(Module):
         if self.has_bias:
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
+            # print("bias shape = ", self.bias.shape)
+
     def reset_parameters(self):
         init.kaiming_uniform_(self.weight, a=math.sqrt(5))
         if self.bias is not None:

@@ -30,7 +30,7 @@ class MaskedNet(nn.Module):
 
 
         module.append(activation)
-        module.append(MaskedLayer(hidden_size, 1, bias=bias,
+        module.append(MaskedLayer(hidden_size, 1, bias=False,
                                   pct_keep=pct_keep))
 
         self.sequential = nn.Sequential(*module)
