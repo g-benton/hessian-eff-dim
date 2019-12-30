@@ -94,6 +94,7 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
             # prod.backward() computes dprod/dparams for every parameter in params and
             # accumulate the gradients into the params.grad attributes
             prod.backward()
+
 def flatten(lst):
     tmp = [i.contiguous().view(-1, 1) for i in lst]
     return torch.cat(tmp).view(-1)
@@ -110,6 +111,7 @@ def get_mask(net):
                 mask_list.append(lyr.bias_mask)
 
     return flatten(mask_list)
+
 
 #############################
 # Return Hessian of a model #
@@ -144,6 +146,7 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
         hessian[:, pp] = gradtensor_to_tensor(model, include_bn=True)
 
     return hessian
+
 
 def mask_model(model, pct_keep, use_cuda=False):
     n_par = sum(torch.numel(p) for p in model.parameters())
