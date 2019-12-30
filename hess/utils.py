@@ -148,6 +148,44 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
     return hessian
 
 
+def get_hessian_eigs(train_x, train_y, loss, model, mask, 
+                     use_cuda=False, n_eigs=100):    
+    if use_cuda:
+        train_x = train_x.cuda()
+        train_y = train_y.cuda()
+
+    if n_eigs != -1:
+        numpars = mask.sum().item()
+        total_pars = sum(m.numel() for m in model.parameters())
+
+        def hvp(rhs):
+            padded_rhs = torch.zeros(total_pars, rhs.shape[-1], 
+                                     device=rhs.device, dtype=rhs.dtype)
+            padded_rhs[mask==1] = rhs
+            padded_rhs = unflatten_like(padded_rhs.t(), model.parameters())
+            eval_hess_vec_prod(padded_rhs, model.parameters(), net=model,
+                               criterion=loss, inputs=train_x, 
+                               targets=train_y)
+            full_hvp = gradtensor_to_tensor(model, include_bn=True)
+            sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
+            return sliced_hvp
+        
+        print('numpars is: ', numpars)
+        _, tmat = lanczos_tridiag(hvp, n_eigs, dtype=train_x.dtype, 
+                                  device=train_x.device, matrix_shape=(numpars, 
+                                  numpars))
+        eigs = lanczos_tridiag_to_diag(tmat)
+        return eigs
+    else:
+        # form and extract sub hessian
+        hessian = get_hessian(train_x, train_y, loss, model, use_cuda=use_cuda)
+        
+        keepers = np.array(np.where(mask.cpu() == 1))[0]
+        sub_hess = hessian[np.ix_(keepers, keepers)]
+        e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
+        return e_val.real
+
+
 def mask_model(model, pct_keep, use_cuda=False):
     n_par = sum(torch.numel(p) for p in model.parameters())
     n_keep = int(pct_keep * n_par)

@@ -30,7 +30,7 @@ def main():
     loss_func = torch.nn.BCEWithLogitsLoss()
     lr = 0.01
 
-    n_trials = 200
+    n_trials = 2
     n_iters = 1000
     losses = torch.zeros(n_trials, n_iters)
     init_eigs = []
@@ -50,11 +50,14 @@ def main():
         keepers = np.array(np.where(mask.cpu() == 1))[0]
 
         ## compute hessian pre-training ##
-        hessian = utils.get_hessian(train_x, train_y, loss=loss_func,
-                             model=model, use_cuda=use_cuda)
-        sub_hess = hessian[np.ix_(keepers, keepers)]
-        e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
-        init_eigs.append(e_val.real)
+        initial_evals = utils.get_hessian_eigs(train_x, train_y,
+            loss=loss_func, model=model, mask=mask, use_cuda=use_cuda, n_eigs=100)
+        init_eigs.append(initial_evals)
+        # hessian = utils.get_hessian(train_x, train_y, loss=loss_func,
+        #                      model=model, use_cuda=use_cuda)
+        # sub_hess = hessian[np.ix_(keepers, keepers)]
+        # e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
+        # init_eigs.append(e_val.real)
 
         ## train ##
         optimizer=optim(model.parameters(), lr=lr)
@@ -77,18 +80,18 @@ def main():
 
         print("model ", trial, " done")
 
-    fpath = "../saved-experiments/"
+    # fpath = "../saved-experiments/"
 
-    fname = "losses.pt"
-    torch.save(losses, fpath + fname)
+    # fname = "losses.pt"
+    # torch.save(losses, fpath + fname)
 
-    fname = "init_eigs.P"
-    with open(fpath + fname, 'wb') as fp:
-        pickle.dump(init_eigs, fp)
+    # fname = "init_eigs.P"
+    # with open(fpath + fname, 'wb') as fp:
+    #     pickle.dump(init_eigs, fp)
 
-    fname = "final_eigs.P"
-    with open(fpath + fname, 'wb') as fp:
-        pickle.dump(final_eigs, fp)
+    # fname = "final_eigs.P"
+    # with open(fpath + fname, 'wb') as fp:
+    #     pickle.dump(final_eigs, fp)
 
 if __name__ == '__main__':
     main()
