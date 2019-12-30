@@ -21,11 +21,16 @@ def main():
     train_x = torch.FloatTensor(X)
     train_y = torch.FloatTensor(Y).unsqueeze(-1)
 
+    X, Y = twospirals(100, noise=1.3)
+    test_x = torch.FloatTensor(X)
+    test_y = torch.FloatTensor(Y).unsqueeze(-1)
+
     use_cuda = torch.cuda.is_available()
     if use_cuda:
         torch.cuda.set_device(2)
         torch.set_default_tensor_type(torch.cuda.FloatTensor)
         train_x, train_y = train_x.cuda(), train_y.cuda()
+        test_x, test_y = test_x.cuda(), test_y.cuda()
 
     loss_func = torch.nn.BCEWithLogitsLoss()
     lr = 0.01
@@ -33,13 +38,14 @@ def main():
     n_trials = 200
     n_iters = 1000
     losses = torch.zeros(n_trials, n_iters)
+    test_losses = torch.zeros(n_trials, n_iters)
     init_eigs = []
     final_eigs = []
     pct_keep = 0.4
     optim = torch.optim.Adam
 
     for trial in range(n_trials):
-        model = hess.nets.MaskedNet(train_x, train_y, bias=True, 
+        model = hess.nets.MaskedNet(train_x, train_y, bias=True,
                                 n_hidden=5, hidden_size=10,
                                 activation=torch.nn.ELU(),
                                 pct_keep=pct_keep)
@@ -63,8 +69,12 @@ def main():
             optimizer.zero_grad()
             outputs = model(train_x)
 
-            loss=loss_func(outputs,train_y)
+            loss = loss_func(outputs,train_y)
             losses[trial, step] = loss
+
+            test_out = model(test_x)
+            test_losses[trial, step] = loss_func(test_out, test_y)
+
             loss.backward()
             optimizer.step()
 
@@ -74,6 +84,7 @@ def main():
         sub_hess = hessian[np.ix_(keepers, keepers)]
         e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
         final_eigs.append(e_val.real)
+
 
         print("model ", trial, " done")
 
