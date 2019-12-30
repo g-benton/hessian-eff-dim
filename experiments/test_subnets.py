@@ -35,14 +35,14 @@ def main():
     losses = torch.zeros(n_trials, n_iters)
     init_eigs = []
     final_eigs = []
-    pct_keep = 0.7
+    pct_keep = 0.4
     optim = torch.optim.Adam
 
     for trial in range(n_trials):
-        model = hess.nets.MaskedNet(train_x, train_y, bias=True,
-                                    n_hidden=5, hidden_size=10, pct_keep=pct_keep)
-        # model = hess.nets.MaskedNet(train_x, train_y, bias=True,
-        #                     n_hidden=5, pct_keep=0.65)
+        model = hess.nets.MaskedNet(train_x, train_y, bias=True, 
+                                n_hidden=5, hidden_size=10,
+                                activation=torch.nn.ELU(),
+                                pct_keep=pct_keep)
 
         if use_cuda:
             model = model.cuda()
