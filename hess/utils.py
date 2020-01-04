@@ -105,7 +105,7 @@ def flatten(lst):
 def get_mask(net):
     mask_list = []
     for lyr in net.sequential:
-        if isinstance(lyr, hess.nets.MaskedLayer):
+        if isinstance(lyr, hess.nets.MaskedLinear):
             mask_list.append(lyr.mask)
             if lyr.has_bias:
                 mask_list.append(lyr.bias_mask)
@@ -201,7 +201,7 @@ def mask_model(model, pct_keep, use_cuda=False):
 
     mask_ind = 0
     for lyr in model.sequential:
-        if isinstance(lyr, hess.nets.MaskedLayer):
+        if isinstance(lyr, hess.nets.MaskedLinear):
             lyr.mask = mask[mask_ind]
             mask_ind += 1
             if lyr.has_bias:

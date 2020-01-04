@@ -1,39 +1,20 @@
 import math
 import torch
 import torch.nn as nn
-from torch.nn import Module, init
+from torch.nn import Module, init, Linear, Conv2d
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
 
-class MaskedLayer(Module):
-    __constants__ = ['bias', 'in_features', 'out_features']
+class MaskedLinear(Linear):
+    #__constants__ = ['bias', 'in_features', 'out_features']
 
     def __init__(self, in_features, out_features, bias=True, pct_keep=0.6):
-        super(MaskedLayer, self).__init__()
-        self.in_features = in_features
-        self.out_features = out_features
-        self.weight = Parameter(torch.Tensor(out_features, in_features))
-        self.has_bias = bias
-        if self.has_bias:
-            self.bias = Parameter(torch.Tensor(out_features))
-        else:
-            self.register_parameter('bias', None)
-        self.reset_parameters()
+        super(MaskedLinear, self).__init__(in_features, out_features, bias=bias)
 
         dist = torch.distributions.Bernoulli(pct_keep)
         self.mask = dist.sample(sample_shape=torch.Size(self.weight.shape))
         if self.has_bias:
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
-
-            # print("bias shape = ", self.bias.shape)
-
-    def reset_parameters(self):
-        init.kaiming_uniform_(self.weight, a=math.sqrt(5))
-        if self.bias is not None:
-            fan_in, _ = init._calculate_fan_in_and_fan_out(self.weight)
-            bound = 1 / math.sqrt(fan_in)
-            init.uniform_(self.bias, -bound, bound)
-
 
     def forward(self, input):
         if self.has_bias:
@@ -43,9 +24,24 @@ class MaskedLayer(Module):
             return F.linear(input, self.weight * self.mask,
                             None)
 
+class MaskedConv2d(Conv2d):
+    def __init__(self, in_channels, out_channels, kernel_size, pct_keep=0.6, bias=True, *args, **kwargs):
+        
+        super(MaskedConv2d, self).__init__(in_channels, out_channels, kernel_size, bias=bias, *args, **kwargs)
+        
+        self.bias = bias
 
+        dist = torch.distributions.Bernoulli(pct_keep)
+        self.mask = dist.sample(sample_shape=torch.Size(self.weight.shape))
+        if self.bias:
+            self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
-    def extra_repr(self):
-        return 'iln_features={}, out_features={}, bias={}'.format(
-            self.in_features, self.out_features, self.bias is not None
-        )
+    def conv2d_forward(self, input, weight):
+        if self.padding_mode == 'circular':
+            expanded_padding = ((self.padding[1] + 1) // 2, self.padding[1] // 2,
+                                (self.padding[0] + 1) // 2, self.padding[0] // 2)
+            return F.conv2d(F.pad(input, expanded_padding, mode='circular'),
+                            weight * self.weight_mask, self.bias * self.bias_mask, self.stride,
+                            _pair(0), self.dilation, self.groups)
+        return F.conv2d(input, weight * self.weight_mask, self.bias * self.bias_mask, self.stride,
+                        self.padding, self.dilation, self.groups)
