@@ -90,8 +90,11 @@ def main():
 
     fpath = "../saved-experiments/"
 
-    fname = "losses.pt"
+    fname = "train_losses.pt"
     torch.save(losses, fpath + fname)
+
+    fname = "test_losses.pt"
+    torch.save(test_losses, fpath + fname)
 
     fname = "init_eigs.P"
     with open(fpath + fname, 'wb') as fp:
