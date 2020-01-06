@@ -1,7 +1,7 @@
 import torch
 import math
 from torch import nn
-from .masked_layer import MaskedLayer
+from .masked_layer import MaskedLinear
 
 class MaskedNet(nn.Module):
     """docstring for SimpleNet."""
@@ -21,16 +21,16 @@ class MaskedNet(nn.Module):
 
         ## initialize the network ##
         module = nn.ModuleList()
-        module.append(MaskedLayer(self.input_size, hidden_size, bias=bias,
+        module.append(MaskedLinear(self.input_size, hidden_size, bias=bias,
                                   pct_keep=pct_keep))
         for ll in range(n_hidden-1):
             module.append(activation)
-            module.append(MaskedLayer(hidden_size, hidden_size, bias=bias,
+            module.append(MaskedLinear(hidden_size, hidden_size, bias=bias,
                                       pct_keep=pct_keep))
 
 
         module.append(activation)
-        module.append(MaskedLayer(hidden_size, 1, bias=False,
+        module.append(MaskedLinear(hidden_size, 1, bias=False,
                                   pct_keep=pct_keep))
 
         self.sequential = nn.Sequential(*module)
