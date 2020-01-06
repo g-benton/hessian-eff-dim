@@ -104,8 +104,8 @@ def flatten(lst):
 #####################################################
 def get_mask(net):
     mask_list = []
-    for lyr in net.sequential:
-        if isinstance(lyr, hess.nets.MaskedLinear):
+    for lyr in net.modules():
+        if isinstance(lyr, hess.nets.MaskedLinear) or isinstance(lyr, hess.nets.MaskedConv2d):
             mask_list.append(lyr.mask)
             if lyr.has_bias:
                 mask_list.append(lyr.bias_mask)
@@ -148,11 +148,13 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
     return hessian
 
 
-def get_hessian_eigs(train_x, train_y, loss, model, mask, 
-                     use_cuda=False, n_eigs=100):    
-    if use_cuda:
-        train_x = train_x.cuda()
-        train_y = train_y.cuda()
+def get_hessian_eigs(loss, model, mask, 
+                     use_cuda=False, n_eigs=100, train_x=None, train_y=None,
+                     loader=None):    
+    if train_x is not None:
+        if use_cuda:
+            train_x = train_x.cuda()
+            train_y = train_y.cuda()
 
     if n_eigs != -1:
         numpars = mask.sum().item()
@@ -165,7 +167,7 @@ def get_hessian_eigs(train_x, train_y, loss, model, mask,
             padded_rhs = unflatten_like(padded_rhs.t(), model.parameters())
             eval_hess_vec_prod(padded_rhs, model.parameters(), net=model,
                                criterion=loss, inputs=train_x, 
-                               targets=train_y)
+                               targets=train_y, dataloader=loader)
             full_hvp = gradtensor_to_tensor(model, include_bn=True)
             sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
             return sliced_hvp

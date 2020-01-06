@@ -3,7 +3,9 @@ import torch
 import torchvision
 import os
 
-from fake import FakeData
+from .fake import FakeData
+
+__all__ = ['loaders']
 
 c10_classes = np.array([[0, 1, 2, 8, 9], [3, 4, 5, 6, 7]], dtype=np.int32)
 

@@ -4,12 +4,14 @@ import torch.nn as nn
 from torch.nn import Module, init, Linear, Conv2d
 from torch.nn.parameter import Parameter
 import torch.nn.functional as F
+from torch.nn.modules.utils import _pair
 
 class MaskedLinear(Linear):
     #__constants__ = ['bias', 'in_features', 'out_features']
 
     def __init__(self, in_features, out_features, bias=True, pct_keep=0.6):
         super(MaskedLinear, self).__init__(in_features, out_features, bias=bias)
+        self.has_bias = bias
 
         dist = torch.distributions.Bernoulli(pct_keep)
         self.mask = dist.sample(sample_shape=torch.Size(self.weight.shape))
@@ -29,11 +31,11 @@ class MaskedConv2d(Conv2d):
         
         super(MaskedConv2d, self).__init__(in_channels, out_channels, kernel_size, bias=bias, *args, **kwargs)
         
-        self.bias = bias
+        self.has_bias = bias
 
         dist = torch.distributions.Bernoulli(pct_keep)
         self.mask = dist.sample(sample_shape=torch.Size(self.weight.shape))
-        if self.bias:
+        if self.has_bias:
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
     def conv2d_forward(self, input, weight):

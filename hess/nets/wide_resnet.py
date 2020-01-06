@@ -9,7 +9,7 @@ import torch.nn.init as init
 import torch.nn.functional as F
 import math
 
-from masked_layer import MaskedConv2d, MaskedLinear
+from .masked_layer import MaskedConv2d, MaskedLinear
 
 __all__ = ["WideResNet28x10"]
 
