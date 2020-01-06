@@ -27,7 +27,7 @@ def main():
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:
-        torch.cuda.set_device(2)
+        torch.cuda.set_device(0)
         torch.set_default_tensor_type(torch.cuda.FloatTensor)
         train_x, train_y = train_x.cuda(), train_y.cuda()
         test_x, test_y = test_x.cuda(), test_y.cuda()
