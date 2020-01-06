@@ -34,7 +34,7 @@ def gradtensor_to_tensor(net, include_bn=False):
 ################################################################################
 #                  For computing Hessian-vector products
 ################################################################################
-def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
+def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
                        dataloader=None,
                        use_cuda=False):
     """
@@ -62,7 +62,7 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
 
         outputs = net(inputs)
         loss = criterion(outputs, targets)
-        grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
+        grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
 
         # Compute inner product of gradient with the direction vector
         # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
@@ -76,17 +76,18 @@ def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
         prod.backward()
     else:
         for batch_idx, (inputs, targets) in enumerate(dataloader):
-            inputs, targets = Variable(inputs), Variable(targets)
+            #inputs, targets = Variable(inputs), Variable(targets)
             if use_cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
 
             outputs = net(inputs)
             loss = criterion(outputs, targets)
-            grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
-
+            grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
             # Compute inner product of gradient with the direction vector
             # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
-            prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
+            #print(grad_f[0])
+            #prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
+            prod = 0.
             for (g, v) in zip(grad_f, vec):
                 prod = prod + (g * v).sum()
 
@@ -157,7 +158,7 @@ def get_hessian_eigs(loss, model, mask,
             train_y = train_y.cuda()
 
     if n_eigs != -1:
-        numpars = mask.sum().item()
+        numpars = int(mask.sum().item())
         total_pars = sum(m.numel() for m in model.parameters())
 
         def hvp(rhs):
@@ -165,16 +166,26 @@ def get_hessian_eigs(loss, model, mask,
                                      device=rhs.device, dtype=rhs.dtype)
             padded_rhs[mask==1] = rhs
             padded_rhs = unflatten_like(padded_rhs.t(), model.parameters())
-            eval_hess_vec_prod(padded_rhs, model.parameters(), net=model,
+            eval_hess_vec_prod(padded_rhs, net=model,
                                criterion=loss, inputs=train_x, 
-                               targets=train_y, dataloader=loader)
+                               targets=train_y, dataloader=loader, use_cuda=use_cuda)
             full_hvp = gradtensor_to_tensor(model, include_bn=True)
             sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
+            print('finished a hvp')
             return sliced_hvp
         
         print('numpars is: ', numpars)
-        _, tmat = lanczos_tridiag(hvp, n_eigs, dtype=train_x.dtype, 
-                                  device=train_x.device, matrix_shape=(numpars, 
+        if train_x is None:
+            data = next(iter(loader))[0]
+            if use_cuda:
+                data = data.cuda()
+            dtype = data.dtype
+            device = data.device
+        else:
+            dtype, device = train_x.dtype, train_x.device
+
+        _, tmat = lanczos_tridiag(hvp, n_eigs, dtype=dtype, 
+                                  device=device, matrix_shape=(numpars, 
                                   numpars))
         eigs = lanczos_tridiag_to_diag(tmat)
         return eigs

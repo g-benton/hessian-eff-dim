@@ -19,6 +19,11 @@ class MaskedLinear(Linear):
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
     def forward(self, input):
+        # if self.weight.device is not self.mask.device:
+        #     self.mask = self.mask.to(self.weight.device)
+        #     if self.has_bias:
+        #         self.bias_mask = self.bias_mask.to(self.bias.device)
+
         if self.has_bias:
             return F.linear(input, self.weight * self.mask,
                             self.bias * self.bias_mask)
@@ -39,11 +44,16 @@ class MaskedConv2d(Conv2d):
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
     def conv2d_forward(self, input, weight):
+        # if weight.device is not self.mask.device:
+        #     self.mask = self.mask.to(weight.device)
+        #     if self.has_bias:
+        #         self.bias_mask = self.bias_mask.to(self.bias.device)
+
         if self.padding_mode == 'circular':
             expanded_padding = ((self.padding[1] + 1) // 2, self.padding[1] // 2,
                                 (self.padding[0] + 1) // 2, self.padding[0] // 2)
             return F.conv2d(F.pad(input, expanded_padding, mode='circular'),
-                            weight * self.weight_mask, self.bias * self.bias_mask, self.stride,
+                            weight * self.mask, self.bias * self.bias_mask, self.stride,
                             _pair(0), self.dilation, self.groups)
-        return F.conv2d(input, weight * self.weight_mask, self.bias * self.bias_mask, self.stride,
+        return F.conv2d(input, weight * self.mask, self.bias * self.bias_mask, self.stride,
                         self.padding, self.dilation, self.groups)
