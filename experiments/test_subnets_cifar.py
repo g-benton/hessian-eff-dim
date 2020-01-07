@@ -80,8 +80,9 @@ def main():
             if isinstance(m, hess.nets.MaskedConv2d) or isinstance(m, hess.nets.MaskedLinear):
                 if m.mask is not None and m.weight is not None:
                     m.mask = m.mask.to(m.weight.device)
-                if m.bias_mask is not None and m.bias is not None:
-                    m.bias_mask = m.bias_mask.to(m.bias.device)
+                if m.has_bias:
+                    if m.bias_mask is not None and m.bias is not None:
+                        m.bias_mask = m.bias_mask.to(m.bias.device)
 
         mask = hess.utils.get_mask(model)
         #mask, perm = hess.utils.mask_model(model, pct_keep, use_cuda)

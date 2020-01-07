@@ -110,6 +110,13 @@ def get_mask(net):
             mask_list.append(lyr.mask)
             if lyr.has_bias:
                 mask_list.append(lyr.bias_mask)
+        elif isinstance(lyr, nn.Linear) or isinstance(lyr, nn.Conv2d):
+            for p in lyr.parameters():
+                mask_list.append(torch.ones_like(p.data))
+        elif isinstance(lyr, nn.BatchNorm2d):
+            mask_list.append(torch.ones_like(lyr.weight))
+            mask_list.append(torch.ones_like(lyr.bias))
+            #print(list(lyr.named_parameters()))
 
     return flatten(mask_list)
 
