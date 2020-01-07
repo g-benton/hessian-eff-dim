@@ -32,7 +32,7 @@ def main():
     #loss_func = torch.nn.BCEWithLogitsLoss()
     #lr = 0.01
 
-    n_trials = 1
+    n_trials = 10
     #n_iters = 1000
     #losses = torch.zeros(n_trials, n_iters)
     init_eigs = []
@@ -91,7 +91,7 @@ def main():
 
         ## compute hessian pre-training ##
         initial_evals = utils.get_hessian_eigs(loss=criterion, model=model, mask=mask, 
-                                               use_cuda=args.cuda, n_eigs=20, loader=loaders['train'])
+                                               use_cuda=args.cuda, n_eigs=100, loader=loaders['train'])
         init_eigs.append(initial_evals)
 
         ## train ##
@@ -107,7 +107,7 @@ def main():
 
         ## compute final hessian ##
         final_evals = utils.get_hessian_eigs(loss=criterion,
-                             model=model, use_cuda=args.cuda, n_eigs=20, mask=mask,
+                             model=model, use_cuda=args.cuda, n_eigs=100, mask=mask,
                              loader=loaders['train'])
         # sub_hess = hessian[np.ix_(keepers, keepers)]
         # e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
