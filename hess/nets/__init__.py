@@ -6,6 +6,7 @@ from .moon_net import *
 from .masked_layer import *
 from .masked_net import *
 
+from .conv_type import *
 
 from .vgg import *
 from .preresnet import *
