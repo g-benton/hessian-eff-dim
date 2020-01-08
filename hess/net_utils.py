@@ -1,7 +1,8 @@
 import torch
 import time
 import numpy as np
-import hess
+#import hess
+from .nets import SubLayerLinear, GetSubnet, MaskedLinear
 from torch import nn
 
 def freeze_model_weights(model):
@@ -35,8 +36,8 @@ def set_model_prune_rate(model, prune_rate):
 def get_mask_from_subnet(model):
     mask_list = []
     for lyr in model.modules():
-        if isinstance(lyr, hess.nets.SubLayerLinear):
-            subnet = hess.nets.GetSubnet.apply(lyr.clamped_scores, lyr.prune_rate)
+        if isinstance(lyr, SubLayerLinear):
+            subnet = GetSubnet.apply(lyr.clamped_scores, lyr.prune_rate)
             mask_list.append(subnet)
 
     return mask_list
@@ -45,7 +46,8 @@ def apply_mask(model, mask):
     mask_ind = 0
     for lyr in model.modules():
         if hasattr(lyr, "mask"):
-            lyr.mask = mask[mask_ind]
+            #lyr.mask = mask[mask_ind]
+            lyr.mask.data.mul_(0.).add_(mask[mask_ind])
             mask_ind += 1
 
     print("==> Applied Mask")
@@ -54,21 +56,23 @@ def apply_mask(model, mask):
 def get_weights_from_subnet(model):
     weight_list = []
     for lyr in model.modules():
-        if isinstance(lyr, hess.nets.SubLayerLinear):
-            weight_list.append(lyr.weight)
+        if isinstance(lyr, SubLayerLinear):
+            weight_list.append(lyr.weight.data)
             if lyr.bias is not None:
-                weight_list.append(lyr.bias)
+                weight_list.append(lyr.bias.data)
 
     return weight_list
 
 def apply_weights(model, weights):
     wght_ind = 0
     for lyr in model.modules():
-        if isinstance(lyr, hess.nets.MaskedLayerLinear):
-            lyr.weight.data = weights[wght_ind]
+        if isinstance(lyr, MaskedLinear):
+            lyr.weight.data.mul_(0.).add_(weights[wght_ind].data)
+            #lyr.weight.data = weights[wght_ind]
             wght_ind += 1
             if lyr.bias is not None:
-                lyr.bias.data = weights[wght_ind]
+                #lyr.bias.data = weights[wght_ind]
+                lyr.bias.data.mul_(0.).add_(weights[wght_ind].data)
                 wght_ind += 1
 
     print("==> Applied Weights")

@@ -1,6 +1,7 @@
 import torch
 from torch import nn
-from .linear_subnet_layers import SubLayerLinear, MaskedLayerLinear
+from .linear_subnet_layers import SubLayerLinear
+from .masked_layer import MaskedLinear
 
 class SubNetLinear(nn.Module):
     """
@@ -42,16 +43,16 @@ class MaskedNetLinear(nn.Module):
         self.out_dim = out_dim
         module = nn.ModuleList()
 
-        module.append(MaskedLayerLinear(in_dim, k, bias=bias))
+        module.append(MaskedLinear(in_dim, k, bias=bias))
         module.append(activation)
 
         for ll in range(n_layers-1):
-            module.append(MaskedLayerLinear(k, k, bias=bias))
+            module.append(MaskedLinear(k, k, bias=bias))
             module.append(activation)
 
-        module.append(MaskedLayerLinear(k, k, bias=bias))
+        module.append(MaskedLinear(k, k, bias=bias))
         module.append(activation)
-        module.append(MaskedLayerLinear(k, out_dim, bias=bias))
+        module.append(MaskedLinear(k, out_dim, bias=bias))
         self.sequential = nn.Sequential(*module)
 
     def forward(self,x):

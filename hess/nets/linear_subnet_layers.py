@@ -28,15 +28,15 @@ class SubLayerLinear(nn.Linear):
         # print(x)
         return x
 
+# class MaskedLayerLinear(nn.Linear):
+#     """
+#     This is a masked linear layer in which the bias is never masked.
+#     """
+#     def __init__(self, in_features, out_features, bias=True):
+#         super(MaskedLayerLinear, self).__init__(in_features, out_features, bias=bias)
+#         self.mask = torch.ones_like(self.weight)
 
-class MaskedLayerLinear(nn.Linear):
-    """
-    This is a masked linear layer in which the bias is never masked.
-    """
-    def __init__(self, in_features, out_features, bias=True):
-        super(MaskedLayerLinear, self).__init__(in_features, out_features, bias=bias)
-        self.mask = torch.ones_like(self.weight)
-
-    def forward(self, input):
-        return F.linear(input, self.weight * self.mask,
-                        self.bias)
+#     def forward(self, input):
+#         new_weight = self.weight * self.mask
+#         return F.linear(input, new_weight,
+#                         self.bias)

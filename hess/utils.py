@@ -168,7 +168,7 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
 
 def get_hessian_eigs(loss, model, mask,
                      use_cuda=False, n_eigs=100, train_x=None, train_y=None,
-                     loader=None):
+                     loader=None, evals=False):
     if train_x is not None:
         if use_cuda:
             train_x = train_x.cuda()
@@ -201,10 +201,12 @@ def get_hessian_eigs(loss, model, mask,
         else:
             dtype, device = train_x.dtype, train_x.device
 
-        _, tmat = lanczos_tridiag(hvp, n_eigs, dtype=dtype,
+        qmat, tmat = lanczos_tridiag(hvp, n_eigs, dtype=dtype,
                                   device=device, matrix_shape=(numpars,
                                   numpars))
-        eigs = lanczos_tridiag_to_diag(tmat)
+        eigs, t_evals = lanczos_tridiag_to_diag(tmat)
+        if evals:
+            return eigs, qmat @ t_evals
         return eigs
     else:
         # form and extract sub hessian
