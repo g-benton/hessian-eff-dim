@@ -13,3 +13,4 @@ from .linear_subnet_layers import *
 from .vgg import *
 from .preresnet import *
 from .wide_resnet import *
+from .resnet import *

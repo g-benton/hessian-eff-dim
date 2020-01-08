@@ -141,6 +141,9 @@ def parser():
     parser.add_argument(
         "--seed", type=int, default=1, metavar="S", help="random seed (default: 1)"
     )
+    parser.add_argument(
+        "--num_channels", type=int, default=64, help="number of channels for resnet"
+    )
     parser.add_argument("--no_schedule", action="store_true", help="store schedule")
 
     args = parser.parse_args()
