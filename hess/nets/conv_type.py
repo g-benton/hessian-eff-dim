@@ -46,13 +46,35 @@ class SubnetConv(nn.Conv2d):
 
     def forward(self, x):
         subnet = GetSubnet.apply(self.clamped_scores, self.prune_rate)
-        print("subnet = ", subnet)
+        # print("subnet = ", subnet)
         w = self.weight * subnet
+        # print(w.shape)
         x = F.conv2d(
             x, w, self.bias, self.stride, self.padding, self.dilation, self.groups
         )
         return x
 
+class SubnetLinear(nn.Linear):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.scores = nn.Parameter(torch.Tensor(self.weight.size()))
+        nn.init.kaiming_uniform_(self.scores, a=math.sqrt(5))
+
+    def set_prune_rate(self, prune_rate):
+        self.prune_rate = prune_rate
+
+    @property
+    def clamped_scores(self):
+        return self.scores.abs()
+
+    def forward(self, x):
+        subnet = GetSubnet.apply(self.clamped_scores, self.prune_rate)
+        # print("subnet = ", subnet)
+        w = self.weight * subnet
+        x = F.linear(x, w, self.bias)
+        # print(x)
+        return x
 
 """
 Sample Based Sparsification
