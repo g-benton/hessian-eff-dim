@@ -43,17 +43,27 @@ class MaskedConv2d(Conv2d):
         if self.has_bias:
             self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
+
     def conv2d_forward(self, input, weight):
         # if weight.device is not self.mask.device:
         #     self.mask = self.mask.to(weight.device)
         #     if self.has_bias:
         #         self.bias_mask = self.bias_mask.to(self.bias.device)
-
-        if self.padding_mode == 'circular':
-            expanded_padding = ((self.padding[1] + 1) // 2, self.padding[1] // 2,
-                                (self.padding[0] + 1) // 2, self.padding[0] // 2)
-            return F.conv2d(F.pad(input, expanded_padding, mode='circular'),
-                            weight * self.mask, self.bias * self.bias_mask, self.stride,
-                            _pair(0), self.dilation, self.groups)
-        return F.conv2d(input, weight * self.mask, self.bias * self.bias_mask, self.stride,
-                        self.padding, self.dilation, self.groups)
+        if self.has_bias:
+            if self.padding_mode == 'circular':
+                expanded_padding = ((self.padding[1] + 1) // 2, self.padding[1] // 2,
+                                    (self.padding[0] + 1) // 2, self.padding[0] // 2)
+                return F.conv2d(F.pad(input, expanded_padding, mode='circular'),
+                                weight * self.mask, self.bias * self.bias_mask, self.stride,
+                                _pair(0), self.dilation, self.groups)
+            return F.conv2d(input, weight * self.mask, self.bias * self.bias_mask, self.stride,
+                            self.padding, self.dilation, self.groups)
+        else:
+            if self.padding_mode == 'circular':
+                expanded_padding = ((self.padding[1] + 1) // 2, self.padding[1] // 2,
+                                    (self.padding[0] + 1) // 2, self.padding[0] // 2)
+                return F.conv2d(F.pad(input, expanded_padding, mode='circular'),
+                                weight * self.mask, self.bias, self.stride,
+                                _pair(0), self.dilation, self.groups)
+            return F.conv2d(input, weight * self.mask, self.bias, self.stride,
+                            self.padding, self.dilation, self.groups)            
