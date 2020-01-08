@@ -7,6 +7,8 @@ from .masked_layer import *
 from .masked_net import *
 
 from .conv_type import *
+from .linear_subnets import *
+from .linear_subnet_layers import *
 
 from .vgg import *
 from .preresnet import *

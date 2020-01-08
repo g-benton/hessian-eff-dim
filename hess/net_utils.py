@@ -35,17 +35,40 @@ def set_model_prune_rate(model, prune_rate):
 def get_mask_from_subnet(model):
     mask_list = []
     for lyr in model.modules():
-        if isinstance(lyr, hess.nets.SubnetLinear):
+        if isinstance(lyr, hess.nets.SubLayerLinear):
             subnet = hess.nets.GetSubnet.apply(lyr.clamped_scores, lyr.prune_rate)
             mask_list.append(subnet)
 
     return mask_list
 
+def apply_mask(model, mask):
+    mask_ind = 0
+    for lyr in model.modules():
+        if hasattr(lyr, "mask"):
+            lyr.mask = mask[mask_ind]
+            mask_ind += 1
+
+    print("==> Applied Mask")
+
 
 def get_weights_from_subnet(model):
     weight_list = []
     for lyr in model.modules():
-        if isinstance(lyr, hess.nets.SubnetLinear):
+        if isinstance(lyr, hess.nets.SubLayerLinear):
             weight_list.append(lyr.weight)
+            if lyr.bias is not None:
+                weight_list.append(lyr.bias)
 
     return weight_list
+
+def apply_weights(model, weights):
+    wght_ind = 0
+    for lyr in model.modules():
+        if isinstance(lyr, hess.nets.MaskedLayerLinear):
+            lyr.weight.data = weights[wght_ind]
+            wght_ind += 1
+            if lyr.bias is not None:
+                lyr.bias.data = weights[wght_ind]
+                wght_ind += 1
+
+    print("==> Applied Weights")
