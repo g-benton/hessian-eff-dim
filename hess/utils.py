@@ -151,7 +151,8 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
         base_vec[0, pp] = 1.
 
         base_vec = unflatten_like(base_vec, model.parameters())
-        eval_hess_vec_prod(base_vec, model.parameters(),
+        eval_hess_vec_prod(base_vec,
+                                # model.parameters(),
                                 net=model,
                                 criterion=loss,
                                 inputs=train_x, targets=train_y)
