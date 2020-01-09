@@ -16,7 +16,7 @@ from gpytorch.lazy import LazyTensor
 import copy
 
 # link: https://github.com/wjmaddox/drbayes/blob/master/experiments/hessian_eigs/fvp.py
-from .utils import flatten
+from hess.utils import flatten
 
 
 class FVP_FD(LazyTensor):
