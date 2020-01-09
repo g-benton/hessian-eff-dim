@@ -19,8 +19,8 @@ class MaskedLinear(Linear):
         #     self.bias_mask = dist.sample(sample_shape=torch.Size(self.bias.shape))
 
     def forward(self, input):
-        # if self.weight.device is not self.mask.device:
-        #     self.mask = self.mask.to(self.weight.device)
+#         if self.weight.device is not self.mask.device:
+#             self.mask = self.mask.to(self.weight.device)
         #     if self.has_bias:
         #         self.bias_mask = self.bias_mask.to(self.bias.device)
 

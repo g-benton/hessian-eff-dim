@@ -46,7 +46,9 @@ def apply_mask(model, mask):
     mask_ind = 0
     for lyr in model.modules():
         if hasattr(lyr, "mask"):
-            #lyr.mask = mask[mask_ind]
+            if lyr.mask.device is not mask[mask_ind].device:
+                lyr.mask = lyr.mask.to(mask[mask_ind].device)
+
             lyr.mask.data.mul_(0.).add_(mask[mask_ind])
             mask_ind += 1
 

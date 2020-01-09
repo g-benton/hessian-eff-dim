@@ -49,6 +49,7 @@ def main():
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:
+        torch.cuda.set_device(3)
         train_x, train_y = train_x.cuda(), train_y.cuda()
         subnet_model = subnet_model.cuda()
         masked_model = masked_model.cuda()
@@ -82,6 +83,7 @@ def main():
                                           train_y=train_y)
 
             eigs_out.append(eigs)
+            print("step ", step, " done")
 
 
     fpath = "./saved-subnet-hessian/"

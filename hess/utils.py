@@ -188,10 +188,10 @@ def get_hessian_eigs(loss, model, mask,
                                targets=train_y, dataloader=loader, use_cuda=use_cuda)
             full_hvp = gradtensor_to_tensor(model, include_bn=True)
             sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
-            print('finished a hvp')
+#             print('finished a hvp')
             return sliced_hvp
 
-        print('numpars is: ', numpars)
+#         print('numpars is: ', numpars)
         if train_x is None:
             data = next(iter(loader))[0]
             if use_cuda:
