@@ -79,6 +79,9 @@ parser.add_argument(
 parser.add_argument(
     "--nsteps", type=int, default=100, help="number of Lanczos steps (default: 100)"
 )
+parser.add_argument(
+    "--num_channels", type=int, default=64, help="number of channels for resnet"
+)
 args = parser.parse_args()
 
 torch.backends.cudnn.benchmark = True
@@ -101,7 +104,8 @@ loaders, num_classes = data.loaders(
     shuffle_train=False,
 )
 
-model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs)
+model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
+                        init_channels=args.num_channels)
 model.cuda()
 
 print("Loading model %s" % args.file)
