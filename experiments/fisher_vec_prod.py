@@ -14,7 +14,8 @@ import time
 from gpytorch.utils.lanczos import lanczos_tridiag, lanczos_tridiag_to_diag
 
 from swag.utils import flatten, unflatten_like
-from transfer_opt.lazy import FVP_FD, FVP_AG
+#from transfer_opt.lazy import FVP_FD, FVP_AG
+from fvp import FVP_FD
 
 # from fvp import FVP_FD
 # from fvp_second_order import FVP_AG
