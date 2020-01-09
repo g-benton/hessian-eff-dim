@@ -10,7 +10,9 @@ import numpy as np
 # import os
 # import tqdm
 
-from hess import models, data
+#from hess import models, data
+from hess import data
+import hess.nets as models
 
 from hess_vec_prod import min_max_hessian_eigs
 from fisher_vec_prod import min_max_fisher_eigs
