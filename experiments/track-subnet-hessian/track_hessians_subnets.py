@@ -49,7 +49,7 @@ def main():
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:
-        torch.cuda.set_device(3)
+        torch.cuda.set_device(1)
         train_x, train_y = train_x.cuda(), train_y.cuda()
         subnet_model = subnet_model.cuda()
         masked_model = masked_model.cuda()
@@ -58,18 +58,22 @@ def main():
     ## Train the Subnet ##
     ######################
 
-    optimizer = torch.optim.Adam(subnet_model.parameters(), lr=0.01)
+    optimizer = torch.optim.Adam(subnet_model.parameters(), lr=0.001)
     loss_func = torch.nn.BCEWithLogitsLoss()
     eigs_every = 10
     n_eigs = 100
+    n_iters = 8000
     eigs_out = []
+    eig_steps = []
+    losses = torch.zeros(n_iters)
 
-    for step in range(1000):
+    for step in range(n_iters):
         optimizer.zero_grad()
         outputs = subnet_model(train_x)
 
         loss=loss_func(outputs,train_y)
         print(loss)
+        losses[step] = loss
         loss.backward()
         optimizer.step()
 
@@ -83,20 +87,28 @@ def main():
                                           train_y=train_y)
 
             eigs_out.append(eigs)
+            eig_steps.append(step)
             print("step ", step, " done")
 
 
     fpath = "./saved-subnet-hessian/"
-    fname = "subnet_eigs.pkl"
 
+    fname = "subnet_eigs.pkl"
     with open(fpath + fname, 'wb') as f:
         pickle.dump(eigs_out, f)
+
+    fname = "eig_steps.pkl"
+    with open(fpath + fname, 'wb') as f:
+        pickle.dump(eig_steps, f)
 
     fname = "subnet_model.pt"
     torch.save(subnet_model.state_dict(), fpath + fname)
 
     fname = "masked_model.pt"
     torch.save(masked_model.state_dict(), fpath + fname)
+
+    fname = "lossses.pt"
+    torch.save(losses, fpath + fname)
 
 
 if __name__ == '__main__':
