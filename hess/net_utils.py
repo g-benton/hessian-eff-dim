@@ -39,6 +39,8 @@ def get_mask_from_subnet(model):
         if isinstance(lyr, SubLayerLinear):
             subnet = GetSubnet.apply(lyr.clamped_scores, lyr.prune_rate)
             mask_list.append(subnet)
+            if lyr.bias is not None:
+                mask_list.append(torch.ones_like(lyr.bias))
 
     return mask_list
 
@@ -51,6 +53,8 @@ def apply_mask(model, mask):
 
             lyr.mask.data.mul_(0.).add_(mask[mask_ind])
             mask_ind += 1
+            if lyr.bias is not None:
+                mask_ind += 1
 
     print("==> Applied Mask")
 

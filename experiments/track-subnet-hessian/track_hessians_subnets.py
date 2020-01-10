@@ -60,9 +60,14 @@ def main():
 
     optimizer = torch.optim.Adam(subnet_model.parameters(), lr=0.01)
     loss_func = torch.nn.BCEWithLogitsLoss()
-    eigs_every = 10
     n_eigs = 100
+    n_iters = 1000
     eigs_out = []
+    losses = torch.zeros(n_iters)
+
+    eigs_every = 5
+    min_loss = 1.
+    prev_computed_step = 0
 
     for step in range(1000):
         optimizer.zero_grad()
@@ -70,20 +75,24 @@ def main():
 
         loss=loss_func(outputs,train_y)
         print(loss)
+        losses[step] = loss
         loss.backward()
         optimizer.step()
 
-        if step % eigs_every == 0:
-            mask = net_utils.get_mask_from_subnet(subnet_model)
-            net_utils.apply_mask(masked_model, mask)
-            mask = utils.flatten(mask)
+        if losses[step] < min_loss:
+            min_loss = losses[step]
+            if step > prev_computed_step + eigs_every:
 
-            eigs = utils.get_hessian_eigs(loss_func, masked_model, mask=mask,
-                                          n_eigs=n_eigs, train_x=train_x,
-                                          train_y=train_y)
+                mask = net_utils.get_mask_from_subnet(subnet_model)
+                net_utils.apply_mask(masked_model, mask)
+                mask = utils.flatten(mask)
 
-            eigs_out.append(eigs)
-            print("step ", step, " done")
+                eigs = utils.get_hessian_eigs(loss_func, masked_model, mask=mask,
+                                              n_eigs=n_eigs, train_x=train_x,
+                                              train_y=train_y)
+
+                eigs_out.append(eigs)
+                print("eigs computed at step ", step, " done")
 
 
     fpath = "./saved-subnet-hessian/"
@@ -97,6 +106,9 @@ def main():
 
     fname = "masked_model.pt"
     torch.save(masked_model.state_dict(), fpath + fname)
+
+    fname = "losses.pt"
+    torch.save(losses, fpath + fname)
 
 
 if __name__ == '__main__':
