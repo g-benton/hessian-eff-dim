@@ -1,4 +1,5 @@
 .DS_Store
+*.P
 *.gz
 *.aux
 *.bbl
