@@ -121,14 +121,14 @@ def main():
 
         # fname = "losses.pt"
         # torch.save(losses, fpath + fname)
-        fpath = args.dir + '/trial_' + str(trial)
-        fname = "init_eigs.P"
-        with open(fpath + fname, 'wb') as fp:
-            pickle.dump(init_eigs, fp)
+        # fpath = args.dir + '/trial_' + str(trial)
+        # fname = "init_eigs.P"
+        # with open(fpath + fname, 'wb') as fp:
+        #     pickle.dump(init_eigs, fp)
 
-        fname = "final_eigs.P"
-        with open(fpath + fname, 'wb') as fp:
-            pickle.dump(final_eigs, fp)
+        # fname = "final_eigs.P"
+        # with open(fpath + fname, 'wb') as fp:
+        #     pickle.dump(final_eigs, fp)
 
 def train_epoch(model, loaders, criterion, optimizer, epoch, end_epoch,
             eval_freq = 1, save_freq = 10, output_dir='./', lr_init=0.01):
