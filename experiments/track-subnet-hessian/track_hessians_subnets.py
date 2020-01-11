@@ -22,6 +22,7 @@ def twospirals(n_points, noise=.5, random_state=920):
 
 
 def main():
+    torch.random.manual_seed(88)
     X, Y = twospirals(500, noise=1.3)
     train_x = torch.FloatTensor(X)
     train_y = torch.FloatTensor(Y).unsqueeze(-1)
@@ -61,7 +62,7 @@ def main():
     optimizer = torch.optim.Adam(subnet_model.parameters(), lr=0.001)
     loss_func = torch.nn.BCEWithLogitsLoss()
     n_eigs = 200
-    n_iters = 3000
+    n_iters = 1000
     eigs_out = []
     eig_steps = []
     losses = torch.zeros(n_iters)
@@ -79,7 +80,7 @@ def main():
         loss.backward()
         optimizer.step()
 
-        if losses[step] < min_loss + 0.05:
+        if losses[step] < min_loss + 0.01:
             min_loss = losses[step]
             if step > prev_computed_step + eigs_every:
 
@@ -96,11 +97,29 @@ def main():
 
                 prev_computed_step = step
                 print("step ", step, " done")
+        if step >= 1:
+            if losses[step] > losses[step-1] + 0.1:
+                
+                mask = net_utils.get_mask_from_subnet(subnet_model)
+                net_utils.apply_mask(masked_model, mask)
+                mask = utils.flatten(mask)
+
+                eigs = utils.get_hessian_eigs(loss_func, masked_model, mask=mask,
+                                              n_eigs=n_eigs, train_x=train_x,
+                                              train_y=train_y)
+
+                eigs_out.append(eigs)
+                eig_steps.append(step)
+
+                prev_computed_step = step
+                print("step ", step, " done")
+        
 
 
     fpath = "./saved-subnet-hessian/"
 
     fname = "subnet_eigs.pkl"
+    subnet_eigs = [ee.cpu() for ee in subnet_eigs]
     with open(fpath + fname, 'wb') as f:
         pickle.dump(eigs_out, f)
 
