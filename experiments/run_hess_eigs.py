@@ -93,13 +93,15 @@ torch.cuda.manual_seed(args.seed)
 print("Using model %s" % args.model)
 model_cfg = getattr(models, args.model)
 
+# only use testing data augmentation (e.g. scaling etc.)
+# no random flipping
 print("Loading dataset %s from %s" % (args.dataset, args.data_path))
 loaders, num_classes = data.loaders(
     args.dataset,
     args.data_path,
     args.batch_size,
     args.num_workers,
-    model_cfg.transform_train,
+    model_cfg.transform_test,
     model_cfg.transform_test,
     use_validation=False,
     split_classes=args.split_classes,
