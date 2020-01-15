@@ -128,37 +128,38 @@ def min_max_hessian_eigs(
     if verbose and rank == 0:
         print("max eigenvalue = %f" % maxeig)
 
-    # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
-    # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
-    # shift = maxeig*.51
-    shift = 0.51 * maxeig.item()
-    print(shift)
+    # # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
+    # # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
+    # # shift = maxeig*.51
+    # shift = 0.51 * maxeig.item()
+    # print(shift)
 
-    def shifted_hess_vec_prod(vec):
-        hvp = hess_vec_prod(vec)
-        return -hvp + shift * vec
+    # def shifted_hess_vec_prod(vec):
+    #     hvp = hess_vec_prod(vec)
+    #     return -hvp + shift * vec
 
-    if verbose and rank == 0:
-        print("Rank %d: Computing shifted eigenvalue" % rank)
+    # if verbose and rank == 0:
+    #     print("Rank %d: Computing shifted eigenvalue" % rank)
 
-    # now run lanczos on the shifted eigenvalues
-    _, neg_t_mat = lanczos_tridiag(
-        shifted_hess_vec_prod,
-        200,
-        device=params[0].device,
-        dtype=params[0].dtype,
-        matrix_shape=(N, N),
-    )
-    neg_eigvals, _ = lanczos_tridiag_to_diag(neg_t_mat)
-    mineig = torch.max(neg_eigvals)
-    print(neg_eigvals)
+    # # now run lanczos on the shifted eigenvalues
+    # _, neg_t_mat = lanczos_tridiag(
+    #     shifted_hess_vec_prod,
+    #     200,
+    #     device=params[0].device,
+    #     dtype=params[0].dtype,
+    #     matrix_shape=(N, N),
+    # )
+    # neg_eigvals, _ = lanczos_tridiag_to_diag(neg_t_mat)
+    # mineig = torch.max(neg_eigvals)
+    # print(neg_eigvals)
 
-    mineig = -mineig + shift
-    print(mineig)
-    if verbose and rank == 0:
-        print("min eigenvalue = " + str(mineig))
+    # mineig = -mineig + shift
+    # print(mineig)
+    # if verbose and rank == 0:
+    #     print("min eigenvalue = " + str(mineig))
 
-    if maxeig <= 0 and mineig > 0:
-        maxeig, mineig = mineig, maxeig
+    # if maxeig <= 0 and mineig > 0:
+    #     maxeig, mineig = mineig, maxeig
 
-    return maxeig, mineig, hess_vec_prod.count, pos_eigvals, neg_eigvals, pos_bases
+    #return maxeig, mineig, hess_vec_prod.count, pos_eigvals, neg_eigvals, pos_bases
+    return maxeig, None, hess_vec_prod.count, pos_eigvals, None, None
