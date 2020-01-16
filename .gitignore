@@ -121,3 +121,7 @@ graph_nets/hypers_tuning/*/*
 
 # dont copy anything from data
 **/cifar10/
+experiments/*log
+experiments/eigenvalues/resnet*/log
+experiments/eigenvalues/*_log
+experiments/eigenvalues/*_log_*
