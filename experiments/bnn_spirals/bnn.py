@@ -60,7 +60,7 @@ def model(X, Y, D_H):
     sigma_obs = 1.0 / np.sqrt(prec_obs)
 
     # observe data
-    numpyro.sample("Y", dist.Normal(z3, sigma_obs), obs=Y)
+    return numpyro.sample("Y", dist.Normal(z3, sigma_obs), obs=Y)
 
 
 # helper function for HMC inference
@@ -135,6 +135,17 @@ def main(args):
 
     plt.savefig('bnn_plot.pdf')
     plt.tight_layout()
+
+    pars_list = []
+    for keys in samples.keys():
+        items = samples[keys]
+        pars_list.append(items.reshape(args.num_samples,-1))
+    pars = np.hstack(pars_list)
+    eigs = np.real(np.linalg.eig(np.cov(pars.T))[0])
+    
+    fig, ax = plt.subplots()
+    plt.plot(eigs)
+    plt.savefig('bnn_eigs.pdf')
 
 
 if __name__ == "__main__":
