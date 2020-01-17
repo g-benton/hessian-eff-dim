@@ -99,22 +99,22 @@ def main():
 
                 prev_computed_step = step
                 print("step ", step, " done")
-        if step >= 1:
-            if losses[step] > losses[step-1] + 0.1:
+#         if step >= 1:
+#             if losses[step] > losses[step-1] + 0.1:
                 
-                mask = net_utils.get_mask_from_subnet(subnet_model)
-                net_utils.apply_mask(masked_model, mask)
-                mask = utils.flatten(mask)
+#                 mask = net_utils.get_mask_from_subnet(subnet_model)
+#                 net_utils.apply_mask(masked_model, mask)
+#                 mask = utils.flatten(mask)
 
-                eigs = utils.get_hessian_eigs(loss_func, masked_model, mask=mask,
-                                              n_eigs=n_eigs, train_x=train_x,
-                                              train_y=train_y)
+#                 eigs = utils.get_hessian_eigs(loss_func, masked_model, mask=mask,
+#                                               n_eigs=n_eigs, train_x=train_x,
+#                                               train_y=train_y)
 
-                eigs_out.append(eigs)
-                eig_steps.append(step)
+#                 eigs_out.append(eigs)
+#                 eig_steps.append(step)
 
-                prev_computed_step = step
-                print("step ", step, " done")
+#                 prev_computed_step = step
+#                 print("step ", step, " done")
         
 
 
