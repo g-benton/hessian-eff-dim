@@ -9,6 +9,7 @@ import hess.net_utils as net_utils
 import hess.utils as utils
 from hess.nets import MaskedNetLinear, SubNetLinear
 # from hess.nets import MaskedLayerLinear, SubLayerLinear
+#torch.set_default_tensor_type(torch.cuda.FloatTensor)
 
 def twospirals(n_points, noise=.5, random_state=920):
     """
@@ -50,7 +51,8 @@ def main():
 
     use_cuda = torch.cuda.is_available()
     if use_cuda:
-        torch.cuda.set_device(1)
+        print('using cuda')
+        torch.cuda.set_device(0)
         train_x, train_y = train_x.cuda(), train_y.cuda()
         subnet_model = subnet_model.cuda()
         masked_model = masked_model.cuda()
@@ -116,12 +118,12 @@ def main():
         
 
 
-    fpath = "./saved-subnet-hessian/"
+    fpath = "./saved-subnet-hessian_0116/"
 
     fname = "subnet_eigs.pkl"
-    subnet_eigs = [ee.cpu() for ee in subnet_eigs]
+    subnet_eigs = [ee.cpu() for ee in eigs_out]
     with open(fpath + fname, 'wb') as f:
-        pickle.dump(eigs_out, f)
+        pickle.dump(subnet_eigs, f)
 
     fname = "eig_steps.pkl"
     with open(fpath + fname, 'wb') as f:
