@@ -32,7 +32,7 @@ def get_loss_surface(basis, model,
                 else:
                     par.data = par.data + perturb[i]
 
-            loss_surf[ii, jj] = loss(model)
+            loss_surf[ii, jj] = loss(model(train_x), train_y)
 
             model.load_state_dict(start_pars)
 
