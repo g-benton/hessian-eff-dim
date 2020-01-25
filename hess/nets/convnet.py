@@ -1,0 +1,128 @@
+## 5-Layer CNN for CIFAR
+## Based on https://myrtle.ai/learn/how-to-train-your-resnet-4-architecture/
+# based on https://gitlab.com/harvard-machine-learning/double-descent/blob/master/models/mcnn.py
+
+from torchvision import transforms
+
+import torch.nn as nn
+
+def block(input, output):
+    # Layer i
+    list = [nn.Conv2d(input, output, kernel_size=3,
+                stride=1, padding=1, bias=True),
+        nn.BatchNorm2d(output),
+        nn.ReLU(),
+        nn.MaxPool2d(2)
+    ]
+    return list
+
+class Flatten(nn.Module):
+    def forward(self, x): return x.view(x.size(0), x.size(1))
+
+class ConvNetDepth(nn.Module):
+    def __init__(self, c=64, num_classes=10, max_depth=3):
+        super(ConvNetDepth, self).__init__()
+        module_list = block(3, c)
+
+        current_width = c
+        last_zero = max_depth // 3 + 1 * (max_depth%4 > 0) - 1
+        for i in range(max_depth // 3 + 1 * (max_depth%4 > 0)):
+            if i != last_zero:
+                module_list.append(*block(current_width, current_width))
+            else:
+                module_list.append(*block(current_width, 2 * current_width))
+                current_width = 2 * current_width
+
+        last_one = max_depth // 3 + 1 * (max_depth%4 > 1) - 1
+        for i in range(max_depth // 3 + 1 * (max_depth%4 > 1)):
+            if i != last_one:
+                module_list.append(*block(current_width, current_width))
+            else:
+                module_list.append(*block(current_width, 2 * current_width))
+                current_width = 2 * current_width
+
+        last_two = max_depth // 3 + 1 * (max_depth%4 > 2) - 1
+        for i in range(max_depth // 3 + 1 * (max_depth%4 > 2)):
+            if i != last_two:
+                module_list.append(*block(current_width, current_width))
+            else:
+                module_list.append(*block(current_width, 2 * current_width))
+                current_width = 2 * current_width
+
+        # last_three = max_depth // 4 - 1
+        # for i in range(max_depth // 4):
+        #     if i != last_three:
+        #         module_list.append(*block(current_width, current_width))
+        #     else:
+        #         module_list.append(*block(current_width, 2 * current_width))
+        #         current_width = 2 * current_width
+
+        linear_layer = [
+            nn.MaxPool2d(4),
+            Flatten(),
+            nn.Linear(c*8, num_classes, bias=True)
+        ]
+
+        module_list.append(*linear_layer)
+
+        self.module_list = nn.Sequential(*module_list)
+
+    def forward(self, x):
+        return self.module_list(x)
+        
+class ConvNet:
+    base = ConvNetDepth
+    args = []
+    kwargs = {}
+    transform_train = transforms.Compose(
+        [
+            transforms.Resize(32),
+            transforms.RandomCrop(32, padding=4),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
+    transform_test = transforms.Compose(
+        [
+            transforms.Resize(32),
+            transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+        ]
+    )
+
+# def make_cnn(c=64, num_classes=10):
+#     ''' Returns a 5-layer CNN with width parameter c. '''
+#     return nn.Sequential(
+#         # Layer 0
+#         nn.Conv2d(3, c, kernel_size=3, stride=1,
+#                   padding=1, bias=True),
+#         nn.BatchNorm2d(c),
+#         nn.ReLU(),
+
+#         # Layer 1
+#         nn.Conv2d(c, c*2, kernel_size=3,
+#                   stride=1, padding=1, bias=True),
+#         nn.BatchNorm2d(c*2),
+#         nn.ReLU(),
+#         nn.MaxPool2d(2),
+
+#         # Layer 2
+#         nn.Conv2d(c*2, c*4, kernel_size=3,
+#                   stride=1, padding=1, bias=True),
+#         nn.BatchNorm2d(c*4),
+#         nn.ReLU(),
+#         nn.MaxPool2d(2),
+
+#         # Layer 3
+#         nn.Conv2d(c*4, c*8, kernel_size=3,
+#                   stride=1, padding=1, bias=True),
+#         nn.BatchNorm2d(c*8),
+#         nn.ReLU(),
+#         nn.MaxPool2d(2),
+
+#         # Layer 4
+#         nn.MaxPool2d(4),
+#         Flatten(),
+#         nn.Linear(c*8, num_classes, bias=True)
+#     )
