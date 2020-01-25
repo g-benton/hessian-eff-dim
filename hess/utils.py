@@ -60,8 +60,8 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
         if use_cuda:
             inputs, targets = inputs.cuda(), targets.cuda()
 
-        outputs = net(inputs)
-        loss = criterion(outputs, targets)
+        # outputs = net(inputs)
+        loss = criterion(net(inputs), targets)
         grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
 
         # Compute inner product of gradient with the direction vector
@@ -80,8 +80,7 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
             if use_cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
 
-            outputs = net(inputs)
-            loss = criterion(outputs, targets)
+            loss = criterion(net(inputs), targets)
             grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
             # Compute inner product of gradient with the direction vector
             # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))

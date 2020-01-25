@@ -5,9 +5,12 @@ from .. import utils
 
 def get_loss_surface(basis, model,
                     train_x, train_y,
-                    loss=torch.nn.MSELoss(),
+                    loss,
                     rng=0.1, n_pts=25,
                     use_cuda=False, **kwargs):
+    """
+    note that loss should be a lambda function that just takes in the model!
+    """
 
     start_pars = model.state_dict()
     ## get out the plane ##
@@ -29,8 +32,7 @@ def get_loss_surface(basis, model,
                 else:
                     par.data = par.data + perturb[i]
 
-            output = model(train_x)
-            loss_surf[ii, jj] = loss(output, train_y)
+            loss_surf[ii, jj] = loss(model(train_x), train_y)
 
             model.load_state_dict(start_pars)
 
