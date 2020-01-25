@@ -49,14 +49,6 @@ class ConvNetDepth(nn.Module):
                 module_list.append(*block(current_width, 2 * current_width))
                 current_width = 2 * current_width
 
-        # last_three = max_depth // 4 - 1
-        # for i in range(max_depth // 4):
-        #     if i != last_three:
-        #         module_list.append(*block(current_width, current_width))
-        #     else:
-        #         module_list.append(*block(current_width, 2 * current_width))
-        #         current_width = 2 * current_width
-
         linear_layer = [
             nn.MaxPool2d(4),
             Flatten(),
@@ -69,7 +61,7 @@ class ConvNetDepth(nn.Module):
 
     def forward(self, x):
         return self.module_list(x)
-        
+
 class ConvNet:
     base = ConvNetDepth
     args = []

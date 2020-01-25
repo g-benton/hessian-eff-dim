@@ -3,6 +3,7 @@ import time
 import numpy as np
 import hess
 from torch import nn
+import torch.nn.functional as F
 from torch.autograd import Variable
 
 from gpytorch.utils.lanczos import lanczos_tridiag, lanczos_tridiag_to_diag
