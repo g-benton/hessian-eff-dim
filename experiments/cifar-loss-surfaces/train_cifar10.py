@@ -18,6 +18,8 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 
+from hessian_evals import get_hessian_evals
+
 columns = ["ep", "lr", "tr_loss", "tr_acc", "te_loss", "te_acc", "time"]
 
 class Net(nn.Module):
@@ -104,21 +106,22 @@ def main():
                 running_loss = 0.0
 
     mask = torch.ones(sum([p.numel() for p in model.parameters()]))
-    final_evals = utils.get_hessian_eigs(loss=criterion,
-                         model=model, use_cuda=args.cuda, n_eigs=200, mask=mask,
+    evals, evecs = get_hessian_evals(loss=criterion,
+                         model=model, use_cuda=args.cuda, n_eigs=200,
                          loader=trainloader)
-
 
     fpath = "./"
 
-
     fname = "model_dict.pt"
-    torch.save(net.state_dict(), fpath+fname)
+    torch.save(model.state_dict(), fpath+fname)
 
-    fname = "final_evals.P"
+    fname = "cifar_evals.P"
     with open(fpath + fname, 'wb') as fp:
-        pickle.dump(final_evals, fp)
+        pickle.dump(evals, fp)
 
+    fname = "cifar_evecs.P"
+    with open(fpath + fname, 'wb') as fp:
+        pickle.dump(evecs, fp)
 
 if __name__ == '__main__':
     main()
