@@ -166,7 +166,7 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
     return hessian
 
 
-def get_hessian_eigs(loss, model, mask,
+def get_hessian_eigs(loss, model, mask=None,
                      use_cuda=False, n_eigs=100, train_x=None, train_y=None,
                      loader=None, evals=False):
     if train_x is not None:
@@ -174,9 +174,14 @@ def get_hessian_eigs(loss, model, mask,
             train_x = train_x.cuda()
             train_y = train_y.cuda()
 
+    total_pars = sum(m.numel() for m in model.parameters())
     if n_eigs != -1:
-        numpars = int(mask.sum().item())
-        total_pars = sum(m.numel() for m in model.parameters())
+        if mask is not None:
+            numpars = int(mask.sum().item())
+        else:
+            numpars = total_pars
+            p = next(iter(model.parameters()))
+            mask = torch.ones(total_pars, dtype=p.dtype, device=p.device)
 
         def hvp(rhs):
             padded_rhs = torch.zeros(total_pars, rhs.shape[-1],
@@ -190,6 +195,7 @@ def get_hessian_eigs(loss, model, mask,
                                criterion=loss, inputs=train_x,
                                targets=train_y, dataloader=loader, use_cuda=use_cuda)
             full_hvp = gradtensor_to_tensor(model, include_bn=True)
+            print('norm of hvp is: ', full_hvp.norm())
             sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
 #             print('finished a hvp')
             return sliced_hvp
