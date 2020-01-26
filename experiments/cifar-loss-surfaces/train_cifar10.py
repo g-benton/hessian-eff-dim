@@ -13,6 +13,8 @@ from hess import data
 import hess.nets as models
 from parser import parser
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 
@@ -51,7 +53,7 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    model = net()
+    model = Net()
     model.to(args.device)
 
     transform = transforms.Compose(
@@ -82,6 +84,8 @@ def main():
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            if args.cuda:
+                inputs, labels = inputs.cuda(), labels.cuda()
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -104,16 +108,9 @@ def main():
                          model=model, use_cuda=args.cuda, n_eigs=200, mask=mask,
                          loader=trainloader)
 
-    print("model ", trial, " done")
 
     fpath = "./"
 
-    # fname = "losses.pt"
-    # torch.save(losses, fpath + fname)
-    # fpath = args.dir + '/trial_' + str(trial)
-    # fname = "init_eigs.P"
-    # with open(fpath + fname, 'wb') as fp:
-    #     pickle.dump(init_eigs, fp)
 
     fname = "model_dict.pt"
     torch.save(net.state_dict(), fpath+fname)
