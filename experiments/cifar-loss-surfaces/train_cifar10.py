@@ -13,8 +13,12 @@ from hess import data
 import hess.nets as models
 from parser import parser
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
+
+from hessian_evals import get_hessian_evals
 
 columns = ["ep", "lr", "tr_loss", "tr_acc", "te_loss", "te_acc", "time"]
 
@@ -51,19 +55,19 @@ def main():
     torch.manual_seed(args.seed)
     torch.cuda.manual_seed(args.seed)
 
-    model = net()
+    model = Net()
     model.to(args.device)
 
     transform = transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    trainset = torchvision.datasets.CIFAR10(root='/datasets/cifar10/', train=True,
+    trainset = torchvision.datasets.CIFAR10(root='~/datasets/', train=True,
                                             download=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='/datasets/cifar10/', train=False,
+    testset = torchvision.datasets.CIFAR10(root='~/datasets/', train=False,
                                            download=False, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=4,
                                              shuffle=False, num_workers=2)
@@ -100,28 +104,21 @@ def main():
                 running_loss = 0.0
 
     mask = torch.ones(sum([p.numel() for p in model.parameters()]))
-    final_evals = utils.get_hessian_eigs(loss=criterion,
-                         model=model, use_cuda=args.cuda, n_eigs=200, mask=mask,
+    evals, evecs = get_hessian_evals(loss=criterion,
+                         model=model, use_cuda=args.cuda, n_eigs=2,
                          loader=trainloader)
-
-    print("model ", trial, " done")
-
     fpath = "./"
 
-    # fname = "losses.pt"
-    # torch.save(losses, fpath + fname)
-    # fpath = args.dir + '/trial_' + str(trial)
-    # fname = "init_eigs.P"
-    # with open(fpath + fname, 'wb') as fp:
-    #     pickle.dump(init_eigs, fp)
-
     fname = "model_dict.pt"
-    torch.save(net.state_dict(), fpath+fname)
+    torch.save(model.state_dict(), fpath+fname)
 
-    fname = "final_evals.P"
+    fname = "cifar_evals.P"
     with open(fpath + fname, 'wb') as fp:
-        pickle.dump(final_evals, fp)
+        pickle.dump(evals, fp)
 
+    fname = "cifar_evecs.P"
+    with open(fpath + fname, 'wb') as fp:
+        pickle.dump(evecs, fp)
 
 if __name__ == '__main__':
     main()

@@ -3,42 +3,10 @@ import argparse
 def parser():
     parser = argparse.ArgumentParser(description="Random Training")
     parser.add_argument(
-        "--dir",
-        type=str,
-        default=None,
-        required=True,
-        help="training directory (default: None)",
-    )
-
-    parser.add_argument(
-        "--dataset", type=str, default="CIFAR10", help="dataset name (default: CIFAR10)"
-    )
-    parser.add_argument(
         "--use_test",
         dest="use_test",
         action="store_true",
         help="use test dataset instead of validation (default: False)",
-    )
-    parser.add_argument(
-        "--max_depth",
-        dest="max_depth",
-        action="max_depth",
-        help="depth of conv net",
-    )
-    parser.add_argument(
-        "--num_workers",
-        type=int,
-        default=4,
-        metavar="N",
-        help="number of workers (default: 4)",
-    )
-    parser.add_argument(
-        "--model",
-        type=str,
-        default=None,
-        required=True,
-        metavar="MODEL",
-        help="model name (default: None)",
     )
 
     parser.add_argument(
