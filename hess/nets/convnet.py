@@ -23,39 +23,47 @@ class ConvNetDepth(nn.Module):
     def __init__(self, c=64, num_classes=10, max_depth=3):
         super(ConvNetDepth, self).__init__()
         module_list = block(3, c)
+        module_list = module_list[:-1] #no max pooling at end of first layer
 
         current_width = c
-        last_zero = max_depth // 3 + 1 * (max_depth%4 > 0) - 1
-        for i in range(max_depth // 3 + 1 * (max_depth%4 > 0)):
+        last_zero = max_depth // 3 + 1 * (max_depth%3 > 0) - 1
+        for i in range(max_depth // 3 + 1 * (max_depth%3 > 0)):
             if i != last_zero:
-                module_list.append(*block(current_width, current_width))
+                module_list.extend(block(current_width, current_width))
+                module_list = module_list[:-1] # no max pooling if we repeat layers
             else:
-                module_list.append(*block(current_width, 2 * current_width))
+                module_list.extend(block(current_width, 2 * current_width))
                 current_width = 2 * current_width
 
-        last_one = max_depth // 3 + 1 * (max_depth%4 > 1) - 1
-        for i in range(max_depth // 3 + 1 * (max_depth%4 > 1)):
+        last_one = max_depth // 3 + 1 * (max_depth%3 > 1) - 1
+        for i in range(max_depth // 3 + 1 * (max_depth%3 > 1)):
             if i != last_one:
-                module_list.append(*block(current_width, current_width))
+                module_list.extend(block(current_width, current_width))
+                module_list = module_list[:-1] # no max pooling if we repeat layers
             else:
-                module_list.append(*block(current_width, 2 * current_width))
+                module_list.extend(block(current_width, 2 * current_width))
                 current_width = 2 * current_width
 
-        last_two = max_depth // 3 + 1 * (max_depth%4 > 2) - 1
-        for i in range(max_depth // 3 + 1 * (max_depth%4 > 2)):
+        last_two = max_depth // 3 + 1 * (max_depth%3 > 2) - 1
+        for i in range(max_depth // 3 + 1 * (max_depth%3 > 2)):
             if i != last_two:
-                module_list.append(*block(current_width, current_width))
+                module_list.extend(block(current_width, current_width))
+                module_list = module_list[:-1] # no max pooling if we repeat layers
             else:
-                module_list.append(*block(current_width, 2 * current_width))
+                module_list.extend(block(current_width, 2 * current_width))
                 current_width = 2 * current_width
+
+        pooling_increaser = 1
+        if max_depth < 3:
+            pooling_increaser = (3 - max_depth) * 2
 
         linear_layer = [
-            nn.MaxPool2d(4),
+            nn.MaxPool2d(4 * pooling_increaser),
             Flatten(),
-            nn.Linear(c*8, num_classes, bias=True)
+            nn.Linear(current_width, num_classes, bias=True)
         ]
 
-        module_list.append(*linear_layer)
+        module_list.extend(linear_layer)
 
         self.module_list = nn.Sequential(*module_list)
 
