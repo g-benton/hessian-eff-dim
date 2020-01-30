@@ -131,49 +131,49 @@ def main():
     n_trial = 10
     scales = torch.linspace(0, 1., n_scale)
 
-    ## Test high curvature directions ##
-    high_curve_losses = torch.zeros(n_scale, n_trial)
-    n_diff_high = torch.zeros(n_scale, n_trial)
-    for ii in range(n_scale):
-        for tt in range(n_trials):
-            alpha = torch.randn(n_evals)
-            pert = evecs.matmul(alpha.unsqueeze(-1)).t()
-            pert = scales[ii] * pert.div(pert.norm())
-            if use_cuda:
-                pert = pert.cuda()
-            pert = utils.unflatten_like(pert, model.parameters())
-
-            ## perturb ##
-            for i, par in enumerate(model.parameters()):
-                par.data = par.data + pert[i]
-
-            ## compute the loss and label diffs ##
-            train_loss, train_diff = compute_loss_differences(model, trainloader,
-                                                              criterion, model_preds)
-            high_curve_losses[ii, tt] = train_loss
-            n_diff_high[ii, tt] = train_diff
-
-            ## need to reload pars after each perturbation ##
-            model.load_state_dict(saved_model)
-
-        ## just to track progress ##
-        print("high curve scale {} of {} done".format(ii, n_scale))
-
-    ## save the high curvature results ##
-    fpath = "./"
-    fname = "high_curve_losses.pt"
-    torch.save(high_curve_losses, fpath + fname)
-
-    fname = "n_diff_high.pt"
-    torch.save(n_diff_high, fpath + fname)
-    print("all high curvature done \n\n")
+    # ## Test high curvature directions ##
+    # high_curve_losses = torch.zeros(n_scale, n_trial)
+    # n_diff_high = torch.zeros(n_scale, n_trial)
+    # for ii in range(n_scale):
+    #     for tt in range(n_trials):
+    #         alpha = torch.randn(n_evals)
+    #         pert = evecs.matmul(alpha.unsqueeze(-1)).t()
+    #         pert = scales[ii] * pert.div(pert.norm())
+    #         if use_cuda:
+    #             pert = pert.cuda()
+    #         pert = utils.unflatten_like(pert, model.parameters())
+    #
+    #         ## perturb ##
+    #         for i, par in enumerate(model.parameters()):
+    #             par.data = par.data + pert[i]
+    #
+    #         ## compute the loss and label diffs ##
+    #         train_loss, train_diff = compute_loss_differences(model, trainloader,
+    #                                                           criterion, model_preds)
+    #         high_curve_losses[ii, tt] = train_loss
+    #         n_diff_high[ii, tt] = train_diff
+    #
+    #         ## need to reload pars after each perturbation ##
+    #         model.load_state_dict(saved_model)
+    #
+    #     ## just to track progress ##
+    #     print("high curve scale {} of {} done".format(ii, n_scale))
+    #
+    # ## save the high curvature results ##
+    # fpath = "./"
+    # fname = "high_curve_losses.pt"
+    # torch.save(high_curve_losses, fpath + fname)
+    #
+    # fname = "n_diff_high.pt"
+    # torch.save(n_diff_high, fpath + fname)
+    # print("all high curvature done \n\n")
 
     ## go through the low curvature directions ##
     low_curve_losses = torch.zeros(n_scale, n_trial)
     n_diff_low = torch.zeros(n_scale, n_trial)
     for ii in range(n_scale):
         for tt in range(n_trials):
-            alpha = torch.randn(n_evals) # random direction
+            alpha = torch.randn(n_par) # random direction
             pert = gram_schmidt(alpha, evecs).unsqueeze(-1).t() # orthogonal to evecs
             pert = scales[ii] * pert.div(pert.norm()) # scaled correctly
 
