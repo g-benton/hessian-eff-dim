@@ -73,7 +73,7 @@ def main():
         print("Preparing model")
         print(*model_cfg.args)
         model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
-                               max_depth=args.num_channels)
+                               c=args.num_channels, max_depth=args.depth)
         model.to(args.device)
         # bad set to for now
         # for m in model.modules():
