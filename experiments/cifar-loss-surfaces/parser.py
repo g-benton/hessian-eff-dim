@@ -3,13 +3,6 @@ import argparse
 def parser():
     parser = argparse.ArgumentParser(description="Random Training")
     parser.add_argument(
-        "--use_test",
-        dest="use_test",
-        action="store_true",
-        help="use test dataset instead of validation (default: False)",
-    )
-
-    parser.add_argument(
         "--epochs",
         type=int,
         default=2,

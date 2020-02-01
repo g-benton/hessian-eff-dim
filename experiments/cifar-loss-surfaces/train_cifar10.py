@@ -62,12 +62,12 @@ def main():
         [transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    trainset = torchvision.datasets.CIFAR10(root='~/datasets/', train=True,
+    trainset = torchvision.datasets.CIFAR10(root='/datasets/cifar10/', train=True,
                                             download=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='~/datasets/', train=False,
+    testset = torchvision.datasets.CIFAR10(root='/datasets/cifar10/', train=False,
                                            download=False, transform=transform)
     testloader = torch.utils.data.DataLoader(testset, batch_size=4,
                                              shuffle=False, num_workers=2)
@@ -86,6 +86,8 @@ def main():
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data
+            if args.cuda:
+                inputs, labels = inputs.cuda(), labels.cuda()
 
             # zero the parameter gradients
             optimizer.zero_grad()
@@ -105,8 +107,9 @@ def main():
 
     mask = torch.ones(sum([p.numel() for p in model.parameters()]))
     evals, evecs = get_hessian_evals(loss=criterion,
-                         model=model, use_cuda=args.cuda, n_eigs=2,
+                         model=model, use_cuda=args.cuda, n_eigs=200,
                          loader=trainloader)
+
     fpath = "./"
 
     fname = "model_dict.pt"
