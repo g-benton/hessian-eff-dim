@@ -12,7 +12,7 @@ from torch.autograd import Variable
 
 from gpytorch.utils.lanczos import lanczos_tridiag, lanczos_tridiag_to_diag
 
-from hess.utils import flatten, unflatten_like, eval_hess_vec_prod
+from hess.utils import flatten, unflatten_like, eval_hess_vec_prod, gradtensor_to_tensor
 
 ################################################################################
 #                  For computing Eigenvalues of Hessian
@@ -29,18 +29,30 @@ def min_max_hessian_eigs(net, dataloader, criterion,
     """
 
     params = [p for p in net.parameters() if len(p.size()) > 1]
-    N = sum(p.numel() for p in params)
-
+    N = sum(p.numel() for p in net.parameters())
+    p = next(iter(net.parameters()))
+    mask = torch.ones(N, dtype=p.dtype, device=p.device)
+    
     def hess_vec_prod(vec):
+        padded_rhs = torch.zeros(N, vec.shape[-1],
+                             device=vec.device, dtype=vec.dtype)
+        padded_rhs[mask==1] = vec
+        
+        print("vec shape = ", vec.shape)
+        print("padded shape = ", padded_rhs.shape)
         hess_vec_prod.count += 1  # simulates a static variable
-        vec = unflatten_like(vec.t(), params)
+        padded_rhs = unflatten_like(padded_rhs.t(), net.parameters())
 
         start_time = time.time()
-        eval_hess_vec_prod(vec, params, net, criterion, dataloader=dataloader,
+        eval_hess_vec_prod(padded_rhs, net=net, criterion=criterion,
+                           dataloader=dataloader,
                           use_cuda=use_cuda)
         prod_time = time.time() - start_time
-        out = gradtensor_to_tensor(net)
-        return out.unsqueeze(1)
+        out = gradtensor_to_tensor(net, include_bn=True)
+        
+        sliced = out[mask==1].unsqueeze(-1)
+        print("sliced shape = ", sliced.shape)
+        return sliced
 
     hess_vec_prod.count = 0
 
@@ -60,7 +72,7 @@ def min_max_hessian_eigs(net, dataloader, criterion,
     # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
     # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
     # shift = maxeig*.51
-    shift = 0.51 * maxeig.item()
+    shift = 0.51 * pos_eigvals.max().item()
     print("Pos Eigs Computed....\n")
 
     def shifted_hess_vec_prod(vec):
@@ -78,9 +90,11 @@ def min_max_hessian_eigs(net, dataloader, criterion,
     )
     neg_eigvals, neg_eigvecs = lanczos_tridiag_to_diag(neg_t_mat)
     neg_eigvecs = neg_q_mat @ neg_eigvecs
-    print("Neg Eigs Computed...\n")
+    print("Neg Eigs Computed...")
+    print("neg eigs = ", neg_eigvals)
+    
 
-    neg_evals = -neg_evals + shift
+    neg_eigvals = -neg_eigvals + shift
 
 
     #return maxeig, mineig, hess_vec_prod.count, pos_eigvals, neg_eigvals, pos_bases
