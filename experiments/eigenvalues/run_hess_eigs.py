@@ -84,6 +84,9 @@ parser.add_argument(
 parser.add_argument(
     "--num_channels", type=int, default=64, help="number of channels for resnet"
 )
+parser.add_argument(
+    "--depth", type=int, default=3, help="depth of convnet"
+)
 args = parser.parse_args()
 
 torch.backends.cudnn.benchmark = True
@@ -109,7 +112,7 @@ loaders, num_classes = data.loaders(
 )
 
 model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
-                        init_channels=args.num_channels)
+                        init_channels=args.num_channels, max_depth=args.depth)
 model.cuda()
 
 print("Loading model %s" % args.file)
