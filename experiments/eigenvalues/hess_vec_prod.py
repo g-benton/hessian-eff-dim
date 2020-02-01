@@ -73,7 +73,7 @@ def eval_hess_vec_prod(vec, params, net, criterion, dataloader, use_cuda=False):
 #                  For computing Eigenvalues of Hessian
 ################################################################################
 def min_max_hessian_eigs(
-    net, dataloader, criterion, rank=0, use_cuda=False, verbose=False
+    net, dataloader, criterion, rank=0, use_cuda=False, verbose=False, nsteps=100
 ):
     """
         Compute the largest and the smallest eigenvalues of the Hessian marix.
@@ -112,7 +112,7 @@ def min_max_hessian_eigs(
     # use lanczos to get the t and q matrices out
     pos_q_mat, pos_t_mat = lanczos_tridiag(
         hess_vec_prod,
-        100,
+        nsteps,
         device=params[0].device,
         dtype=params[0].dtype,
         matrix_shape=(N, N),

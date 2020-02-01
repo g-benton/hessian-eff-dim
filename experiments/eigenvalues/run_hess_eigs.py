@@ -35,7 +35,7 @@ parser.add_argument(
     "--use_test",
     dest="use_test",
     action="store_true",
-    help="use test dataset instead of validation (default: False)",
+    help="use test dataset instead of train set (default: False)",
 )
 parser.add_argument(
     "--batch_size",
@@ -134,7 +134,7 @@ if args.fisher:
 else:
     print("computing eigenvalues of the hessian")
     min_max_fn = min_max_hessian_eigs
-    kwargs = {}
+    kwargs = {"nsteps": args.nsteps}
 
 max_eval, min_eval, hvps, pos_evals, neg_evals, pos_bases = min_max_fn(
     model, loader, criterion, use_cuda=True, verbose=True, **kwargs
