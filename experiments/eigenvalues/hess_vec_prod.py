@@ -162,4 +162,4 @@ def min_max_hessian_eigs(
     #     maxeig, mineig = mineig, maxeig
 
     #return maxeig, mineig, hess_vec_prod.count, pos_eigvals, neg_eigvals, pos_bases
-    return maxeig, None, hess_vec_prod.count, pos_eigvals, None, None
+    return maxeig, None, hess_vec_prod.count, pos_eigvals, None, pos_t_mat

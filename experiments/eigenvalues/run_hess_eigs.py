@@ -152,5 +152,5 @@ np.savez(
     args.save_path,
     pos_evals=pos_evals.cpu().numpy(),
     #neg_evals=neg_evals,
-    #pos_bases=pos_bases.cpu().numpy(),
+    pos_bases=pos_bases.cpu().numpy(),
 )
