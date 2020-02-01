@@ -34,7 +34,7 @@ def compute_loss_differences(model, loader, criterion,
                             model_preds, use_cuda=True):
     train_loss = 0.
     train_diffs = 0
-    for dd, data in enumerate(loader, 0):
+    for dd, data in enumerate(trainloader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = data
         if use_cuda:
@@ -68,6 +68,7 @@ def main():
     saved_model = torch.load("./model.pt", map_location=('cpu'))
     model.load_state_dict(saved_model)
     if use_cuda:
+        torch.cuda.set_device(4)
         model = model.cuda()
 
 
@@ -128,16 +129,15 @@ def main():
 
     n_scale = 20
     n_trial = 10
-    keep_evecs = 20
     scales = torch.linspace(0, 1., n_scale)
 
-    # Test high curvature directions ##
+    ## Test high curvature directions ##
     high_curve_losses = torch.zeros(n_scale, n_trial)
     n_diff_high = torch.zeros(n_scale, n_trial)
     for ii in range(n_scale):
-        for tt in range(n_trial):
-            alpha = torch.randn(keep_evecs)
-            pert = evecs[:, :keep_evecs].matmul(alpha.unsqueeze(-1)).t()
+        for tt in range(n_trials):
+            alpha = torch.randn(n_evals)
+            pert = evecs.matmul(alpha.unsqueeze(-1)).t()
             pert = scales[ii] * pert.div(pert.norm())
             if use_cuda:
                 pert = pert.cuda()
@@ -172,8 +172,8 @@ def main():
     low_curve_losses = torch.zeros(n_scale, n_trial)
     n_diff_low = torch.zeros(n_scale, n_trial)
     for ii in range(n_scale):
-        for tt in range(n_trial):
-            alpha = torch.randn(n_par) # random direction
+        for tt in range(n_trials):
+            alpha = torch.randn(n_evals) # random direction
             pert = gram_schmidt(alpha, evecs).unsqueeze(-1).t() # orthogonal to evecs
             pert = scales[ii] * pert.div(pert.norm()) # scaled correctly
 

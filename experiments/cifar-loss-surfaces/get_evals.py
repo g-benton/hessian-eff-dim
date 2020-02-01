@@ -41,6 +41,8 @@ if __name__ == '__main__':
     use_cuda =  torch.cuda.is_available()
     if use_cuda:
         torch.cuda.set_device(4)
+
+
     # In[4]:
 
 
@@ -77,7 +79,6 @@ if __name__ == '__main__':
 
 
 
-    print("STARTING...")
     evals, evecs = get_hessian_eigs(loss=criterion,
                          model=model, use_cuda=True, n_eigs=200,
                          loader=trainloader, evals=True)

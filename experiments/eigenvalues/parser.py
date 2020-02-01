@@ -144,6 +144,9 @@ def parser():
     parser.add_argument(
         "--num_channels", type=int, default=64, help="number of channels for resnet"
     )
+    parser.add_argument(
+        "--depth", type=int, default=3, help="depth of convnet"
+    )
     parser.add_argument("--no_schedule", action="store_true", help="store schedule")
 
     args = parser.parse_args()
