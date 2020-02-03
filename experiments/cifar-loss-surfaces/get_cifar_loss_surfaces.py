@@ -12,6 +12,8 @@ import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 
+from compute_loss_surface import get_loss_surface
+from min_max_evals import min_max_hessian_eigs
 from hess.utils import get_hessian_eigs
 import matplotlib.pyplot as plt
 from gpytorch.utils.lanczos import lanczos_tridiag, lanczos_tridiag_to_diag
@@ -35,12 +37,11 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-
-if __name__ == '__main__':
+def main():
     use_cuda =  torch.cuda.is_available()
 
     model = Net()
-    model.load_state_dict(torch.load("./model.pt"))
+    criterion = torch.nn.CrossEntropyLoss()
 
     if use_cuda:
         model = model.cuda()
@@ -54,7 +55,82 @@ if __name__ == '__main__':
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=128,
                                               shuffle=True, num_workers=2)
 
-    testset = torchvision.datasets.CIFAR10(root='/datasets/cifar10/', train=False,
-                                           download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=128,
-                                             shuffle=False, num_workers=2)
+
+    ## Super Trainer ##
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+    for epoch in range(30):  # loop over the dataset multiple times
+
+        running_loss = 0.0
+        for i, data in enumerate(trainloader, 0):
+            # get the inputs; data is a list of [inputs, labels]
+            inputs, labels = data
+
+            if use_cuda:
+                inputs, labels = inputs.cuda(), labels.cuda()
+
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward + backward + optimize
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            # print statistics
+            running_loss += loss.item()
+            if i % 100 == 99:    # print every 2000 mini-batches
+                print('[%d, %5d] loss: %.3f' %
+                      (epoch + 1, i + 1, running_loss / 100))
+                running_loss = 0.0
+
+    fpath = "./loss-surfaces/"
+    fname = "saved_model.pt"
+    torch.save(model.state_dict(), fpath + fname)
+
+    output = min_max_hessian_eigs(model, trainloader, criterion,
+                                  50, 50, use_cuda=use_cuda)
+
+    (pos_evals, pos_evecs, neg_evals, neg_evecs) = output
+    
+    print("positive evals = ", pos_evals)
+    ## clean these guys up ##
+    keep = np.where(pos_evals.cpu() != 1)
+    pos_evals = pos_evals[keep].squeeze()
+    pos_evecs = pos_evecs[:, keep].squeeze()
+    
+    fname = "pos_evecs.pt"
+    torch.save(pos_evecs, fpath + fname)
+    fname = "pos_evals.pt"
+    torch.save(pos_evals, fpath + fname)
+    
+    print("negative evals = ", neg_evals)
+    ## clean these guys up ##
+    keep = np.where(neg_evals.cpu() != 1)
+    neg_evals = neg_evals[keep].squeeze()
+    neg_evecs = neg_evecs[:, keep].squeeze()
+    
+    fname = "neg_evecs.pt"
+    torch.save(neg_evecs, fpath + fname)
+    fname = "neg_evals.pt"
+    torch.save(neg_evals, fpath + fname)
+
+    high_loss = get_loss_surface(pos_evecs, model, trainloader,
+                            criterion, rng=1., n_pts=25, use_cuda=use_cuda)
+    fname = "high_loss.pt"
+    torch.save(high_loss, fpath + fname)
+
+    low_loss = get_loss_surface(neg_evecs, model, trainloader,
+                            criterion, rng=1., n_pts=25, use_cuda=use_cuda)
+    fname = "low_loss.pt"
+    torch.save(low_loss, fpath + fname)
+
+
+    n_pars = sum(p.numel() for p in model.parameters())
+    all_loss = get_loss_surface(torch.eye(n_pars), model, trainloader,
+                            criterion, rng=1., n_pts=25, use_cuda=use_cuda)
+    fname = "all_loss.pt"
+    torch.save(all_loss, fpath + fname)
+
+if __name__ == '__main__':
+    main()

@@ -187,7 +187,7 @@ def get_hessian_eigs(loss, model, mask=None,
             padded_rhs = torch.zeros(total_pars, rhs.shape[-1],
                                      device=rhs.device, dtype=rhs.dtype)
 
-            # print("padded rhs shape = ", padded_rhs.shape)
+            print("padded rhs shape = ", padded_rhs.shape)
             # print("mask shape = ", mask.shape)
             padded_rhs[mask==1] = rhs
             padded_rhs = unflatten_like(padded_rhs.t(), model.parameters())
@@ -198,6 +198,7 @@ def get_hessian_eigs(loss, model, mask=None,
             print('norm of hvp is: ', full_hvp.norm())
             sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
 #             print('finished a hvp')
+            print("return shape = ", sliced_hvp.shape)
             return sliced_hvp
 
 #         print('numpars is: ', numpars)

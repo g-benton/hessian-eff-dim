@@ -1,6 +1,7 @@
 import math
 import torch
 import numpy as np
+import hess.utils as utils
 
 def loss_getter(model, dataloader, criterion, use_cuda=False):
     train_loss = 0.
@@ -20,7 +21,7 @@ def loss_getter(model, dataloader, criterion, use_cuda=False):
 
 def get_loss_surface(basis, model,
                     dataloader,
-                    loss,
+                    criterion,
                     rng=0.1, n_pts=25,
                     use_cuda=False):
     """
@@ -47,7 +48,8 @@ def get_loss_surface(basis, model,
                 else:
                     par.data = par.data + perturb[i]
 
-            loss_surf[ii, jj] = loss_getter(model, dataloader, use_cuda)
+            loss_surf[ii, jj] = loss_getter(model, dataloader, 
+                                            criterion, use_cuda)
 
             model.load_state_dict(start_pars)
 
@@ -59,10 +61,10 @@ def get_plane(basis):
     that is in the span of the basis
     """
     n_basis = basis.size(-1)
-    wghts = torch.randn(n_basis, 1)
+    wghts = torch.randn(n_basis, 1).to(basis.device)
     dir1 = basis.matmul(wghts)
 
-    wghts = torch.randn(n_basis, 1)
+    wghts = torch.randn(n_basis, 1).to(basis.device)
     dir2 = basis.matmul(wghts)
 
     ## now gram schmidt these guys ##

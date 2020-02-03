@@ -112,7 +112,7 @@ loaders, num_classes = data.loaders(
 )
 
 model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
-                        init_channels=args.num_channels, max_depth=args.depth)
+                        c=args.num_channels, max_depth=args.depth)
 model.cuda()
 
 print("Loading model %s" % args.file)
