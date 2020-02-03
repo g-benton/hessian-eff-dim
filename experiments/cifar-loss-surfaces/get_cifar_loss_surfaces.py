@@ -58,7 +58,7 @@ def main():
 
     ## Super Trainer ##
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    for epoch in range(20):  # loop over the dataset multiple times
+    for epoch in range(30):  # loop over the dataset multiple times
 
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
@@ -79,24 +79,41 @@ def main():
 
             # print statistics
             running_loss += loss.item()
-            if i % 2000 == 1999:    # print every 2000 mini-batches
+            if i % 100 == 99:    # print every 2000 mini-batches
                 print('[%d, %5d] loss: %.3f' %
-                      (epoch + 1, i + 1, running_loss / 2000))
+                      (epoch + 1, i + 1, running_loss / 100))
                 running_loss = 0.0
 
     fpath = "./loss-surfaces/"
     fname = "saved_model.pt"
-    torch.save(model.state_dict, fpath + fname)
+    torch.save(model.state_dict(), fpath + fname)
 
     output = min_max_hessian_eigs(model, trainloader, criterion,
-                                  3, 25, use_cuda=use_cuda)
+                                  50, 50, use_cuda=use_cuda)
 
     (pos_evals, pos_evecs, neg_evals, neg_evecs) = output
+    
+    print("positive evals = ", pos_evals)
+    ## clean these guys up ##
+    keep = np.where(pos_evals.cpu() != 1)
+    pos_evals = pos_evals[keep].squeeze()
+    pos_evecs = pos_evecs[:, keep].squeeze()
+    
     fname = "pos_evecs.pt"
     torch.save(pos_evecs, fpath + fname)
-
+    fname = "pos_evals.pt"
+    torch.save(pos_evals, fpath + fname)
+    
+    print("negative evals = ", neg_evals)
+    ## clean these guys up ##
+    keep = np.where(neg_evals.cpu() != 1)
+    neg_evals = neg_evals[keep].squeeze()
+    neg_evecs = neg_evecs[:, keep].squeeze()
+    
     fname = "neg_evecs.pt"
     torch.save(neg_evecs, fpath + fname)
+    fname = "neg_evals.pt"
+    torch.save(neg_evals, fpath + fname)
 
     high_loss = get_loss_surface(pos_evecs, model, trainloader,
                             criterion, rng=1., n_pts=25, use_cuda=use_cuda)

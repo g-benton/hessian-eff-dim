@@ -35,7 +35,7 @@ parser.add_argument(
     "--use_test",
     dest="use_test",
     action="store_true",
-    help="use test dataset instead of validation (default: False)",
+    help="use test dataset instead of train set (default: False)",
 )
 parser.add_argument(
     "--batch_size",
@@ -84,6 +84,9 @@ parser.add_argument(
 parser.add_argument(
     "--num_channels", type=int, default=64, help="number of channels for resnet"
 )
+parser.add_argument(
+    "--depth", type=int, default=3, help="depth of convnet"
+)
 args = parser.parse_args()
 
 torch.backends.cudnn.benchmark = True
@@ -109,7 +112,7 @@ loaders, num_classes = data.loaders(
 )
 
 model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
-                        init_channels=args.num_channels)
+                        c=args.num_channels, max_depth=args.depth)
 model.cuda()
 
 print("Loading model %s" % args.file)
@@ -134,7 +137,7 @@ if args.fisher:
 else:
     print("computing eigenvalues of the hessian")
     min_max_fn = min_max_hessian_eigs
-    kwargs = {}
+    kwargs = {"nsteps": args.nsteps}
 
 max_eval, min_eval, hvps, pos_evals, neg_evals, pos_bases = min_max_fn(
     model, loader, criterion, use_cuda=True, verbose=True, **kwargs
@@ -152,5 +155,5 @@ np.savez(
     args.save_path,
     pos_evals=pos_evals.cpu().numpy(),
     #neg_evals=neg_evals,
-    #pos_bases=pos_bases.cpu().numpy(),
+    pos_bases=pos_bases.cpu().numpy(),
 )
