@@ -103,22 +103,11 @@ def main():
                       (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
 
-    mask = torch.ones(sum([p.numel() for p in model.parameters()]))
-    evals, evecs = get_hessian_evals(loss=criterion,
-                         model=model, use_cuda=args.cuda, n_eigs=2,
-                         loader=trainloader)
     fpath = "./"
 
     fname = "model_dict.pt"
     torch.save(model.state_dict(), fpath+fname)
 
-    fname = "cifar_evals.P"
-    with open(fpath + fname, 'wb') as fp:
-        pickle.dump(evals, fp)
-
-    fname = "cifar_evecs.P"
-    with open(fpath + fname, 'wb') as fp:
-        pickle.dump(evecs, fp)
 
 if __name__ == '__main__':
     main()
