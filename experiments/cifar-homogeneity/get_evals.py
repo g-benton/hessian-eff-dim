@@ -84,8 +84,6 @@ if __name__ == '__main__':
                          loader=trainloader, evals=True)
 
 
-
-
     fpath = "./"
 
     fname = "cifar_evals_200.pt"
