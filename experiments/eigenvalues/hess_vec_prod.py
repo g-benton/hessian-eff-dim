@@ -11,69 +11,14 @@ from torch import nn
 from torch.autograd import Variable
 
 from gpytorch.utils.lanczos import lanczos_tridiag, lanczos_tridiag_to_diag
-
-from swag.utils import flatten, unflatten_like
-
-################################################################################
-#                              Supporting Functions
-################################################################################
-def gradtensor_to_tensor(net, include_bn=False):
-    """
-        convert the grad tensors to a list
-    """
-    filter = lambda p: include_bn or len(p.data.size()) > 1
-    return flatten([p.grad.data for p in net.parameters() if filter(p)])
-
-
-################################################################################
-#                  For computing Hessian-vector products
-################################################################################
-def eval_hess_vec_prod(vec, params, net, criterion, dataloader, use_cuda=False):
-    """
-    Evaluate product of the Hessian of the loss function with a direction vector "vec".
-    The product result is saved in the grad of net.
-    Args:
-        vec: a list of tensor with the same dimensions as "params".
-        params: the parameter list of the net (ignoring biases and BN parameters).
-        net: model with trained parameters.
-        criterion: loss function.
-        dataloader: dataloader for the dataset.
-        use_cuda: use GPU.
-    """
-
-    if use_cuda:
-        net.cuda()
-        vec = [v.cuda() for v in vec]
-
-    net.eval()
-    net.zero_grad()  # clears grad for every parameter in the net
-
-    for batch_idx, (inputs, targets) in enumerate(dataloader):
-        inputs, targets = Variable(inputs), Variable(targets)
-        if use_cuda:
-            inputs, targets = inputs.cuda(), targets.cuda()
-
-        outputs = net(inputs)
-        loss = criterion(outputs, targets)
-        grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
-
-        # Compute inner product of gradient with the direction vector
-        # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
-        prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
-        for (g, v) in zip(grad_f, vec):
-            prod = prod + (g * v).sum()
-
-        # Compute the Hessian-vector product, H*v
-        # prod.backward() computes dprod/dparams for every parameter in params and
-        # accumulate the gradients into the params.grad attributes
-        prod.backward()
-
+from hess.utils import flatten, unflatten_like, eval_hess_vec_prod, gradtensor_to_tensor
 
 ################################################################################
 #                  For computing Eigenvalues of Hessian
 ################################################################################
 def min_max_hessian_eigs(
-    net, dataloader, criterion, rank=0, use_cuda=False, verbose=False, nsteps=100
+    net, dataloader, criterion, rank=0, use_cuda=False, verbose=False, nsteps=100,
+    return_evecs=False
 ):
     """
         Compute the largest and the smallest eigenvalues of the Hessian marix.
@@ -124,42 +69,10 @@ def min_max_hessian_eigs(
     maxeig = torch.max(pos_eigvals)
 
     pos_bases = pos_q_mat @ pos_eigvecs
-    # maxeig = pos_eigvals[0]
     if verbose and rank == 0:
         print("max eigenvalue = %f" % maxeig)
 
-    # # If the largest eigenvalue is positive, shift matrix so that any negative eigenvalue is now the largest
-    # # We assume the smallest eigenvalue is zero or less, and so this shift is more than what we need
-    # # shift = maxeig*.51
-    # shift = 0.51 * maxeig.item()
-    # print(shift)
-
-    # def shifted_hess_vec_prod(vec):
-    #     hvp = hess_vec_prod(vec)
-    #     return -hvp + shift * vec
-
-    # if verbose and rank == 0:
-    #     print("Rank %d: Computing shifted eigenvalue" % rank)
-
-    # # now run lanczos on the shifted eigenvalues
-    # _, neg_t_mat = lanczos_tridiag(
-    #     shifted_hess_vec_prod,
-    #     200,
-    #     device=params[0].device,
-    #     dtype=params[0].dtype,
-    #     matrix_shape=(N, N),
-    # )
-    # neg_eigvals, _ = lanczos_tridiag_to_diag(neg_t_mat)
-    # mineig = torch.max(neg_eigvals)
-    # print(neg_eigvals)
-
-    # mineig = -mineig + shift
-    # print(mineig)
-    # if verbose and rank == 0:
-    #     print("min eigenvalue = " + str(mineig))
-
-    # if maxeig <= 0 and mineig > 0:
-    #     maxeig, mineig = mineig, maxeig
-
-    #return maxeig, mineig, hess_vec_prod.count, pos_eigvals, neg_eigvals, pos_bases
-    return maxeig, None, hess_vec_prod.count, pos_eigvals, None, pos_t_mat
+    if not return_evecs:
+        return maxeig, None, hess_vec_prod.count, pos_eigvals, None, pos_t_mat
+    else:
+        return maxeig, None, hess_vec_prod.count, pos_eigvals, pos_bases, pos_t_mat

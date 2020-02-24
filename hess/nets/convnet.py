@@ -20,8 +20,9 @@ class Flatten(nn.Module):
     def forward(self, x): return x.view(x.size(0), x.size(1))
 
 class ConvNetDepth(nn.Module):
-    def __init__(self, c=64, num_classes=10, max_depth=3):
+    def __init__(self, init_channels=64, num_classes=10, max_depth=3):
         super(ConvNetDepth, self).__init__()
+        c = init_channels
         module_list = block(3, c)
         module_list = module_list[:-1] #no max pooling at end of first layer
 

@@ -12,6 +12,7 @@ import tabulate
 
 import swag.utils as training_utils
 import swag
+
 from hess import data
 import hess.nets as models
 from parser import parser
@@ -63,8 +64,17 @@ def main():
 
         print("Preparing model")
         print(*model_cfg.args)
+
+        # add extra args for varying names
+        if args.model == 'ResNet18':
+            extra_args = {'init_channels':args.num_channels}
+        elif args.model == 'ConvNet':
+            extra_args = {'init_channels':args.num_channels, 'max_depth':args.depth}
+        else:
+            extra_args = {}
+
         model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
-                               c=args.num_channels, max_depth=args.depth)
+                               **extra_args)
         model.to(args.device)
 
         ## train ##
