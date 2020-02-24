@@ -19,9 +19,13 @@ insert first plot from paper
 insert second plot from paper
 ```
 
+#### Posterior Contraction Experiments; Section 4
+
+To produce the Figure 4 in the paper you will first need to generate the eigenvalues of the Hessian associated with Bayesian neural networks trained using increasing numbers of data points by running `/notebooks/bnn_regression_varying_dimensionality.ipynb`. You will then be able to run `/notebooks/BLR_effective_dimension.ipynb` to compare the effective dimensionality of a Bayesian linear regression with an increasing number of data points.
+
 #### Loss Surface Experiments; Section 5
 
-To see all results from Section 5 of the paper just run `/notebooks/two_spirals.ipynb`.
+To see all results from Section 5 of the paper just run `/notebooks/two_spirals.ipynb`. We provide similar results to those of Section 5 for the CIFAR10 dataset. All code needed to generate these results is contained in `experiments/cifar-homogeneity/` and `experiments/cifar-loss-surfaces/`, there are README files in those directories that walk through producing the relevant data and figures.
 
 ### Package
 
