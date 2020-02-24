@@ -11,6 +11,7 @@ import time
 
 from hess import data
 import hess.nets as models
+from hess.nets import BasicConv as Net
 from parser import parser
 import torch
 import torch.nn as nn
@@ -19,27 +20,6 @@ import torchvision
 import torchvision.transforms as transforms
 from compute_loss_surface import get_loss_surface
 
-columns = ["ep", "lr", "tr_loss", "tr_acc", "te_loss", "te_acc", "time"]
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 5 * 5, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 10)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 5 * 5)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-    
 def gram_schmidt(vector, basis):
     n_base = basis.shape[-1]
     for bb in range(n_base):
@@ -51,19 +31,19 @@ def gram_schmidt(vector, basis):
 def main():
     args = parser()
     use_cuda = torch.cuda.is_available()
- 
+
 
     ## load in everything ##
-    fpath = "./outputs/"
-    
+    fpath = "./"
+
     model = Net()
     saved_pars = torch.load(fpath + "saved_model.pt")
     if use_cuda:
         model = model.cuda()
-    
+
     evecs = torch.load(fpath + "top_evecs.pt")
     evals = torch.load(fpath + "top_evals.pt")
-      
+
     ## get training data ##
     transform = transforms.Compose(
         [transforms.ToTensor(),
@@ -79,7 +59,7 @@ def main():
 
 
     criterion = nn.CrossEntropyLoss()
-      
+
     ## compute loss surfaces ##
     fname = "high_loss_" + str(args.range) + "_" + str(args.n_pts)
     fname = fname.replace(".", "_")
@@ -90,7 +70,7 @@ def main():
     print("High Loss Done")
     fname = "low_loss_" + str(args.range) + "_" + str(args.n_pts)
     fname = fname.replace(".", "_")
-    
+
     v1 = gram_schmidt(torch.randn(evecs.shape[0]).cuda(), evecs).unsqueeze(-1)
     v2 = gram_schmidt(torch.randn(evecs.shape[0]).cuda(), evecs).unsqueeze(-1)
     low_basis = torch.cat((v1, v2), -1)
@@ -102,9 +82,9 @@ def main():
     fname = fname.replace(".", "_")
     full_loss = get_loss_surface(torch.randn_like(low_basis).cuda(), model, trainloader,
                             criterion, rng=args.range, n_pts=args.n_pts, use_cuda=use_cuda)
-    
+
     torch.save(full_loss, fpath + fname)
     print("Full Loss Done")
-    
+
 if __name__ == '__main__':
     main()
