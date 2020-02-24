@@ -4,7 +4,6 @@
 import argparse
 import torch
 
-# import torch.nn.functional as F
 import numpy as np
 
 from hess import data
@@ -49,9 +48,9 @@ parser.add_argument(
 parser.add_argument(
     "--model",
     type=str,
-    default="VGG16",
+    default="PreResNet56",
     metavar="MODEL",
-    help="model name (default: VGG16)",
+    help="model name (default: PreResNet56)",
 )
 parser.add_argument(
     "--save_path", type=str, default=None, required=True, help="path to npz results file"

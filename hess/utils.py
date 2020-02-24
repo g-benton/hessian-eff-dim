@@ -14,8 +14,6 @@ def unflatten_like(vector, likeTensorList):
     outList = []
     i = 0
     for tensor in likeTensorList:
-        # print(tensor.numel())
-        # n = module._parameters[name].numel()
         n = tensor.numel()
         outList.append(vector[:, i : i + n].view(tensor.shape))
         i += n
@@ -54,7 +52,6 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
         net.cuda()
         vec = [v.cuda() for v in vec]
 
-#     net.eval()
     net.zero_grad()  # clears grad for every parameter in the net
     if dataloader is None:
         inputs, targets = Variable(inputs), Variable(targets)
@@ -84,9 +81,6 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
             loss = criterion(net(inputs), targets)
             grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
             # Compute inner product of gradient with the direction vector
-            # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
-            #print(grad_f[0])
-            #prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
             prod = 0.
             for (g, v) in zip(grad_f, vec):
                 prod = prod + (g * v).sum()
@@ -99,36 +93,6 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
 def flatten(lst):
     tmp = [i.contiguous().view(-1, 1) for i in lst]
     return torch.cat(tmp).view(-1)
-
-#####################################################
-# Gets the mask as a torch tensor from a masked net #
-#####################################################
-def get_mask(net):
-    mask_list = []
-    for lyr in net.modules():
-        if isinstance(lyr, hess.nets.MaskedLinear) or isinstance(lyr, hess.nets.MaskedConv2d):
-            mask_list.append(lyr.mask)
-            if lyr.has_bias:
-                mask_list.append(lyr.bias_mask)
-        elif isinstance(lyr, nn.Linear) or isinstance(lyr, nn.Conv2d):
-            for p in lyr.parameters():
-                mask_list.append(torch.ones_like(p.data))
-        elif isinstance(lyr, nn.BatchNorm2d):
-            mask_list.append(torch.ones_like(lyr.weight))
-            mask_list.append(torch.ones_like(lyr.bias))
-            #print(list(lyr.named_parameters()))
-
-    return flatten(mask_list)
-
-def apply_mask(model, mask):
-    mask_ind = 0
-    for lyr in model.modules():
-        if hasattr(lyr, "mask"):
-            lyr.mask = mask[mask_ind]
-            mask_ind += 1
-
-    return
-
 
 #############################
 # Return Hessian of a model #
@@ -184,24 +148,13 @@ def get_hessian_eigs(loss, model, mask=None,
             mask = torch.ones(total_pars, dtype=p.dtype, device=p.device)
 
         def hvp(rhs):
-            padded_rhs = torch.zeros(total_pars, rhs.shape[-1],
-                                     device=rhs.device, dtype=rhs.dtype)
-
-            print("padded rhs shape = ", padded_rhs.shape)
-            # print("mask shape = ", mask.shape)
-            padded_rhs[mask==1] = rhs
-            padded_rhs = unflatten_like(padded_rhs.t(), model.parameters())
+            padded_rhs = unflatten_like(rhs, model.parameters())
             eval_hess_vec_prod(padded_rhs, net=model,
                                criterion=loss, inputs=train_x,
                                targets=train_y, dataloader=loader, use_cuda=use_cuda)
             full_hvp = gradtensor_to_tensor(model, include_bn=True)
-            print('norm of hvp is: ', full_hvp.norm())
-            sliced_hvp = full_hvp[mask==1].unsqueeze(-1)
-#             print('finished a hvp')
-            print("return shape = ", sliced_hvp.shape)
-            return sliced_hvp
+            return full_hvp
 
-#         print('numpars is: ', numpars)
         if train_x is None:
             data = next(iter(loader))[0]
             if use_cuda:
@@ -226,28 +179,3 @@ def get_hessian_eigs(loss, model, mask=None,
         sub_hess = hessian[np.ix_(keepers, keepers)]
         e_val, _ = np.linalg.eig(sub_hess.cpu().detach())
         return e_val.real
-
-
-def mask_model(model, pct_keep, use_cuda=False):
-    n_par = sum(torch.numel(p) for p in model.parameters())
-    n_keep = int(pct_keep * n_par)
-
-    mask = [1 for i in range(n_keep)] + [0 for i in range(n_par - n_keep)]
-    mask = torch.tensor(mask)
-    perm = np.random.permutation(n_par)
-    mask = mask[perm]
-    if use_cuda:
-        mask = mask.cuda()
-
-    mask = unflatten_like(mask.unsqueeze(0), model.parameters())
-
-    mask_ind = 0
-    for lyr in model.sequential:
-        if isinstance(lyr, hess.nets.MaskedLinear):
-            lyr.mask = mask[mask_ind]
-            mask_ind += 1
-            if lyr.has_bias:
-                lyr.bias_mask = mask[mask_ind]
-                mask_ind += 1
-
-    return flatten(mask), perm
