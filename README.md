@@ -1,6 +1,6 @@
 ## Rethinking Parameter Counting: Effective Dimensionality Revisted
 
-This repo contains the code needed to replicate the experiments in **Rethinking Parameter Counting: Effective Dimensionality Revisted** by [Gregory Benton](https://g-benton.github.io/), [Wesley Maddox](https://wjmaddox.github.io), and [Andrew Gordon Wilson](https://cims.nyu.edu/~andrewgw/).
+This repo contains the code needed to replicate the experiments in **Rethinking Parameter Counting: Effective Dimensionality Revisted** by [Wesley Maddox](https://wjmaddox.github.io), [Gregory Benton](https://g-benton.github.io/), and [Andrew Gordon Wilson](https://cims.nyu.edu/~andrewgw/).
 
 Please cite our work if you find it useful:
 ```
