@@ -11,13 +11,9 @@ placeholder for bibtex
 
 In this paper we examine the effective dimensionality of the Hessian of the loss (shortened to effective dimensionality) as a way to explain generalization performance in neural networks. We revisit an interpretation offered by McKay (1992): the effective dimensionalilty describes the number of parameters determined by the data. Using this interpretation we find that across many architectures of varying sizes the effective dimensionality of the model provides a much better proxy for generalization than simply counting the number of parameters a model contains.
 
-```
-insert first plot from paper
-```
+![Effective Dimensionality and Generalization](plots/dnn_double_descent.png?raw=true "Effective Dimensionality and Generalization")
 
-```
-insert second plot from paper
-```
+![Effective Dimensionality, Width, and Depth](plots/width-depth-exp.png?raw=true "Effective Dimensionality, Width, and Depth")
 
 #### Posterior Contraction Experiments; Section 4
 
