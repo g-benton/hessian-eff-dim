@@ -4,7 +4,12 @@ This repo contains the code needed to replicate the experiments in **Rethinking 
 
 Please cite our work if you find it useful:
 ```
-placeholder for bibtex
+@article{parametercounting,
+  title={Rethinking Parameter Counting: Effective Dimensionality Revisted},
+  author={Maddox, Wesley J. and Benton, Gregory and Wilson, Andrew Gordon},
+  journal={arXiv preprint arXiv:2003.02139},
+  year={2020}
+}
 ```
 
 ### Introduction
