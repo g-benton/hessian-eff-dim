@@ -16,9 +16,9 @@ setup(
     version='alpha',
     description=('Repo for Hessian Loss Surface Inference'),
     long_description=long_description,
-    author='Anonymous',
-    author_email='',
-    url='https://github.com/anonymized',
+    author='Wesley Maddox, Greg Benton, Andrew Wilson',
+    author_email='wjm363@nyu.edu',
+    url='https://github.com/g-benton/hessian-eff-dim',
     license='Apache-2.0',
     packages=['hess'],
    install_requires=[
