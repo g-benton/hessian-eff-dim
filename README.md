@@ -37,3 +37,11 @@ To install the package, run `python setup.py develop`. See dependencies in `requ
 
 ### References
 - MacKay, David JC. "Bayesian model comparison and backprop nets." Advances in neural information processing systems. 1992.
+
+## References for Code Base
+
+Model implementations:
+  - PreResNet: https://github.com/bearpaw/pytorch-classification
+  - ResNet18: https://github.com/kuangliu/pytorch-cifar/blob/master/models/preact_resnet.py, but copied from https://gitlab.com/harvard-machine-learning/double-descent/-/blob/master/models/resnet18k.py
+  - CNNs: copied from https://gitlab.com/harvard-machine-learning/double-descent/-/blob/master/models/mcnn.py 
+  

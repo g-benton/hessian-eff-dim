@@ -26,7 +26,7 @@ setup(
     'setuptools==41.0.0',
     'scipy>=1.2.1',
     'torch>=1.0.1',
-    'numpy==1.16.2',
+    'numpy>=1.16.2',
     'gpytorch>=0.3.1',
     'scikit_learn>=0.20.3'
    ],
