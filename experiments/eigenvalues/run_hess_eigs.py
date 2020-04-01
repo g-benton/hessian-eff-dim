@@ -91,8 +91,16 @@ loaders, num_classes = data.loaders(
     shuffle_train=False,
 )
 
+# add extra args for varying names
+if args.model == 'ResNet18':
+    extra_args = {'init_channels':args.num_channels}
+elif args.model == 'ConvNet':
+    extra_args = {'init_channels':args.num_channels, 'max_depth':args.depth}
+else:
+    extra_args = {}
+
 model = model_cfg.base(*model_cfg.args, num_classes=num_classes, **model_cfg.kwargs,
-                        c=args.num_channels, max_depth=args.depth)
+                       **extra_args)
 model.cuda()
 
 print("Loading model %s" % args.file)
@@ -123,8 +131,14 @@ print("Minimum eigenvalue: ", min_eval)
 print("Number of full batch vector products: ", hvps)
 
 print("Saving all eigenvalues to ", args.save_path)
-np.savez(
-    args.save_path,
-    pos_evals=pos_evals.cpu().numpy(),
-    pos_bases=pos_bases.cpu().numpy(),
-)
+if pos_bases is not None:
+    np.savez(
+       args.save_path,
+       pos_evals=pos_evals.cpu().numpy(),
+       pos_bases=pos_bases.cpu().numpy(),
+    )
+else:
+    np.savez(
+        args.save_path,
+        pos_evals=pos_evals.cpu().numpy()
+    )

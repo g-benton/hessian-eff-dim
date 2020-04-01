@@ -33,7 +33,7 @@ def gradtensor_to_tensor(net, include_bn=False):
 ################################################################################
 #                  For computing Hessian-vector products
 ################################################################################
-def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
+def eval_hess_vec_prod(vec, params, net, criterion, inputs=None, targets=None,
                        dataloader=None,
                        use_cuda=False):
     """
@@ -60,12 +60,13 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
 
         # outputs = net(inputs)
         loss = criterion(net(inputs), targets)
-        grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
+        grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
 
         # Compute inner product of gradient with the direction vector
         # prod = Variable(torch.zeros(1)).type(type(grad_f[0].data))
         prod = torch.zeros(1, dtype=grad_f[0].dtype, device=grad_f[0].device)
         for (g, v) in zip(grad_f, vec):
+            print(g.shape, v.shape)
             prod = prod + (g * v).sum()
 
         # Compute the Hessian-vector product, H*v
@@ -79,7 +80,7 @@ def eval_hess_vec_prod(vec, net, criterion, inputs=None, targets=None,
                 inputs, targets = inputs.cuda(), targets.cuda()
 
             loss = criterion(net(inputs), targets)
-            grad_f = torch.autograd.grad(loss, inputs=net.parameters(), create_graph=True)
+            grad_f = torch.autograd.grad(loss, inputs=params, create_graph=True)
             # Compute inner product of gradient with the direction vector
             prod = 0.
             for (g, v) in zip(grad_f, vec):

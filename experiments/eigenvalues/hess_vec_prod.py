@@ -43,7 +43,7 @@ def min_max_hessian_eigs(
         vec = unflatten_like(vec.t(), params)
 
         start_time = time.time()
-        eval_hess_vec_prod(vec, params, net, criterion, dataloader, use_cuda)
+        eval_hess_vec_prod(vec, params, net, criterion, dataloader=dataloader, use_cuda=use_cuda)
         prod_time = time.time() - start_time
         if verbose and rank == 0:
             print("   Iter: %d  time: %f" % (hess_vec_prod.count, prod_time))
