@@ -37,6 +37,7 @@ def min_max_hessian_eigs(
 
     params = [p for p in net.parameters() if len(p.size()) > 1]
     N = sum(p.numel() for p in params)
+    nb = len(dataloader)
 
     def hess_vec_prod(vec):
         hess_vec_prod.count += 1  # simulates a static variable
@@ -48,7 +49,7 @@ def min_max_hessian_eigs(
         if verbose and rank == 0:
             print("   Iter: %d  time: %f" % (hess_vec_prod.count, prod_time))
         out = gradtensor_to_tensor(net)
-        return out.unsqueeze(1)
+        return out.unsqueeze(1) / nb
 
     hess_vec_prod.count = 0
     if verbose and rank == 0:
