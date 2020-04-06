@@ -39,8 +39,10 @@ def compute_error(model, dataloader, n_batch_samples):
 
 
 def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
-                    n_batch_samples=10, n_midpt_rds=15, upper=5., lower=0.,
-                    bound_eps=5e-3):
+                    n_batch_samples=10, n_midpt_rds=15, upper=1., lower=0.,
+                    bound_eps=5e-3, discrep_eps=1e-2):
+
+    train_accuracy = compute_error(model, trainloader, n_batch_samples)
 
     saved_pars = model.state_dict()
     n_pars = sum([p.numel() for p in model.parameters()])
@@ -57,7 +59,9 @@ def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
         print(rnd_errors)
         rnd_error = rnd_errors.mean()
 
-        if (upper - lower) < bound_eps:
+        discrepancy = torch.abs(train_accuracy - rnd_error)
+
+        if ((upper - lower) < bound_eps) or (discrepancy < discrep_eps):
             return midpt
 
         elif rnd_error > target_deviate:
