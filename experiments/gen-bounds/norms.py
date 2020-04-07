@@ -27,38 +27,42 @@ def perturb_model(model, sigma, n_pars):
 
     return
 
-def compute_error(model, dataloader, n_batch_samples):
-    error = 0
+def compute_accuracy(model, dataloader, n_batch_samples):
+    accuracy = 0
     for batch in range(n_batch_samples):
         images, labels = next(iter(dataloader))
         preds = model(images).max(-1)[1]
-        error += torch.where(preds != labels)[0].numel()
+        accuracy += torch.where(preds == labels)[0].numel()
 
-    return error/(n_batch_samples * dataloader.batch_size)
+    return accuracy/(n_batch_samples * dataloader.batch_size)
 
 
 
 def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
-                    n_batch_samples=10, n_midpt_rds=15, upper=1., lower=0.,
-                    bound_eps=5e-3, discrep_eps=1e-2):
+                    n_batch_samples=10, n_midpt_rds=20, upper=5., lower=0.,
+                    bound_eps=1e-3, discrep_eps=1e-2,
+                    use_cuda=False):
 
-    train_accuracy = compute_error(model, trainloader, n_batch_samples)
+    ## compute training accuracy ##
+    train_accuracy = compute_accuracy(model, trainloader, n_batch_samples)
 
+    ## store saved pars ##
     saved_pars = model.state_dict()
     n_pars = sum([p.numel() for p in model.parameters()])
 
     for midpt_iter in range(n_midpt_rds):
+        ## for each iteration of midpoint method
         model.load_state_dict(saved_pars)
         midpt = (upper + lower)/2.
 
+        ## compute estimate of error with perturbed parameters
         rnd_errors = torch.zeros(resample_sigma)
         perturb_model(model, midpt, n_pars)
         for rnd in range(resample_sigma):
-            rnd_errors[rnd] = compute_error(model, trainloader, n_batch_samples)
+            rnd_errors[rnd] = compute_accuracy(model, trainloader, n_batch_samples)
 
-        print(rnd_errors)
+        ## how much has perturbation changed
         rnd_error = rnd_errors.mean()
-
         discrepancy = torch.abs(train_accuracy - rnd_error)
 
         if ((upper - lower) < bound_eps) or (discrepancy < discrep_eps):
@@ -67,69 +71,11 @@ def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
         elif rnd_error > target_deviate:
             ## can cutoff the upper half
             upper = midpt
-            print("cutoff upper\n")
+            # print("cutoff upper\n")
         else:
             ## can cutoff the lower half
             lower = midpt
-            print("cut off lower\n")
+            # print("cutoff lower\n")
 
 
     return midpt
-#
-#     nxt_data = next(iter(trainloader))
-#     image_tensor = nxt_data[0]
-#     label_tensor = nxt_data[1]
-#
-#     logits = model(image_tensor)
-#     saved_pars = model.state_dict().clone()
-#
-#     perturb_ph, perturb_add, perturb_sub = add_noise_to_variables(model_variables)
-#     perturb_ph_list = [perturb_ph[k] for k in perturb_ph]
-#     original_weight = [sess.run(v) for v in model_variables]
-#     restore_original_weight_op = [
-#       tf.assign(v, vv) for v, vv in zip(model_variables, original_weight)
-#     ]
-#
-#     perturbation = []
-#     for v, vo in zip(model_variables, original_weight):
-#         perturbation.append(v - vo)
-#     flattened_difference = flatten_and_concat(perturbation)
-#      perturb_norm = tf.norm(flattened_difference)
-#
-#     projection_op = []
-#     target_norm = tf.placeholder(tf.float32, ())
-#     for v, vo in zip(model_variables, original_weight):
-#         projection_op.append(
-#             tf.assign(v, vo + target_norm / perturb_norm * (v - vo)))
-#
-#     xent = tf.nn.softmax_cross_entropy_with_logits(
-#         logits=logits, labels=label_tensor)
-#     op = tf.train.GradientDescentOptimizer(learning_rate).minimize(-xent)
-#     correctly_predicted = tf.equal(
-#       tf.argmax(logits, axis=-1), tf.argmax(label_tensor, axis=-1))
-#     loss = tf.reduce_mean(tf.cast(correctly_predicted, tf.float32))
-#
-#     h, l = upper, lower
-#     for j in range(search_depth):
-#         m = (h + l) / 2.
-#         min_accuracy = 10.
-#         for i in range(mtc_iter):
-#           sess.run(restore_original_weight_op)
-#           fd = get_gaussian_noise_feed_dict(perturb_ph, m)
-#           sess.run(perturb_add)
-#           for k in range(ascent_step):
-#             sess.run(op)
-#             new_norm = sess.run(perturb_norm)
-#             if new_norm > m: sess.run(projection_op, {target_norm: m})
-#             if j % 10 == 0:
-#               estimates = []
-#               for _ in range(num_batch):
-#                 estimates.append(sess.run(loss))
-#               min_accuracy = min(min_accuracy, np.mean(estimates))
-#         deviate = abs(min_accuracy - training_accuracy)
-#         if h - l < bound_eps or abs(deviate - target_loss) < deviat_eps:
-#           return m
-#         if deviate > target_loss:
-#           h = m
-#         else:
-#           l = m

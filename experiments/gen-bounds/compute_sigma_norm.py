@@ -2,12 +2,18 @@ import math
 import torch
 import torchvision
 import hess
-from hess.nets import ConvNetDepth
+from hess.nets import PreActBlock, PreActResNet
 import torchvision
 from torchvision import transforms
 from norms import lp_path_norm
 
 def main():
+
+
+    use_cuda = torch.cuda.is_available()
+    if use_cuda:
+        torch.set_default_tensor_type(torch.cuda.FloatTensor)
+
 
     ## load in a loader just for sizing ##
     transform = transforms.Compose(
@@ -20,8 +26,8 @@ def main():
         ]
     )
 
-
-    trainset = torchvision.datasets.CIFAR100(root='~/datasets/cifar100/', train=True,
+    data_dir = '/misc/vlgscratch4/WilsonGroup/greg_b/datasets/cifar100/'
+    trainset = torchvision.datasets.CIFAR100(root=data_dir, train=True,
                                             download=True, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=128,
                                               shuffle=True, num_workers=2)
@@ -29,31 +35,31 @@ def main():
     input_size = next(iter(trainloader))[0].shape
 
     ## model sizes ##
-    depths = torch.arange(9)
-    widths = torch.arange(4, 65, 4)
+    widths = torch.arange(1, 66, 1)
+    num_classes = 100
 
     ## saving ##
-    path_norms = torch.zeros(depths.numel(), widths.numel())
+    path_norms = torch.zeros(widths.numel())
+    for w_ind, wdth in enumerate(widths):
+        width = wdth.item()
 
-    for d_ind, dpth in enumerate(depths):
-        for w_ind, wdth in enumerate(widths):
-            depth = dpth.item()
-            width = wdth.item()
+        print("width ", width, " starting")
+        model = PreActResNet(PreActBlock, [2, 2, 2, 2], num_classes=num_classes,
+                            init_channels=width)
+        if use_cuda:
+            model = model.cuda()
 
-            print("depth ", depth, " width ", width, " starting")
-            model = ConvNetDepth(num_classes=100, c=width, max_depth=depth)
+        fpath = '/misc/vlgscratch4/WilsonGroup/greg_b/data/resnet_training_data/'
+        fpath2 = "resnet_" + str(width)
+        fname = "/trial_0/checkpoint-200.pt"
 
-            fpath = './saved-outputs/width_depth_exp_all/'
-            fpath2 = "depth_" + str(depth) + "_width_" + str(width) + "/trial_0/"
-            fname = "checkpoint-200.pt"
+        chckpt = torch.load(fpath + fpath2 + fname)
+        model.load_state_dict(chckpt['state_dict'])
 
-            chckpt = torch.load(fpath + fpath2 + fname, map_location='cpu')
-            model.load_state_dict(chckpt['state_dict'])
+        path_norms[w_ind] = sharpness_sigma(model, trainloader,
+                                            use_cuda=use_cuda)
 
-            path_norms[d_ind, w_ind] = lp_path_norm(model, 'cpu',
-                                                    input_size=input_size)
-
-            print("depth ", depth, " width ", width, " done \n")
+        print("width ", width, " done \n")
 
     torch.save(path_norms, "./path_norms.pt")
 

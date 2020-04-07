@@ -14,4 +14,5 @@ from .vgg import *
 from .preresnet import *
 from .wide_resnet import *
 from .resnet import *
+from .resnet import PreActBlock, PreActResNet
 from .convnet import *
