@@ -2,7 +2,7 @@ import math
 import torch
 import torchvision
 import hess
-from hess.nets import make_resnet18k
+from hess.nets import PreActResNet, PreActBlock
 import torchvision
 from torchvision import transforms
 from norms import lp_path_norm
@@ -30,15 +30,16 @@ def main():
 
     ## model sizes ##
     depths = torch.arange(9)
-    widths = torch.arange(4, 65, 4)
+    widths = torch.arange(1, 66, 1)
 
     ## saving ##
-    path_norms = torch.zeros(depths.numel(), widths.numel())
+    path_norms = torch.zeros(widths.numel())
 
     for w_ind, wdth in enumerate(widths):
+        width=wdth.item()
 
         print(" width ", width, " starting")
-        model = make_resnet18k(k=width, num_classes=100)
+        model = PreActResNet(PreActBlock, [2, 2, 2, 2], num_classes=100, init_channels=width)
 
         fpath = '/misc/vlgscratch4/WilsonGroup/greg_b/data/resnet_training_data/'
         fpath2 = "resnet_" + str(width)
@@ -47,7 +48,7 @@ def main():
         chckpt = torch.load(fpath + fpath2 + fname, map_location='cpu')
         model.load_state_dict(chckpt['state_dict'])
 
-        path_norms[d_ind, w_ind] = lp_path_norm(model, 'cpu',
+        path_norms[w_ind] = lp_path_norm(model, 'cpu',
                                                 input_size=input_size)
 
     torch.save(path_norms, "./resnet_path_norms.pt")

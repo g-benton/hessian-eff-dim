@@ -1,5 +1,6 @@
 README.rst
 setup.py
+hess/net_utils.py
 hess/utils.py
 hess.egg-info/PKG-INFO
 hess.egg-info/SOURCES.txt
