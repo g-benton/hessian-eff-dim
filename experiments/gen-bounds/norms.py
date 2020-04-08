@@ -39,7 +39,7 @@ def compute_accuracy(model, dataloader, n_batch_samples):
 
 
 def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
-                    n_batch_samples=10, n_midpt_rds=20, upper=5., lower=0.,
+                    n_batch_samples=10, n_midpt_rds=20, upper=2., lower=0.,
                     bound_eps=1e-3, discrep_eps=1e-2,
                     use_cuda=False):
 
@@ -56,19 +56,19 @@ def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
         midpt = (upper + lower)/2.
 
         ## compute estimate of error with perturbed parameters
-        rnd_errors = torch.zeros(resample_sigma)
+        rnd_accs = torch.zeros(resample_sigma)
         perturb_model(model, midpt, n_pars)
         for rnd in range(resample_sigma):
-            rnd_errors[rnd] = compute_accuracy(model, trainloader, n_batch_samples)
+            rnd_accs[rnd] = compute_accuracy(model, trainloader, n_batch_samples)
 
         ## how much has perturbation changed
-        rnd_error = rnd_errors.mean()
-        discrepancy = torch.abs(train_accuracy - rnd_error)
+        rnd_accuracy= rnd_accs.mean()
+        discrepancy = torch.abs(train_accuracy - rnd_accuracy)
 
         if ((upper - lower) < bound_eps) or (discrepancy < discrep_eps):
             return midpt
 
-        elif rnd_error > target_deviate:
+        elif discrepancy > target_deviate:
             ## can cutoff the upper half
             upper = midpt
             # print("cutoff upper\n")

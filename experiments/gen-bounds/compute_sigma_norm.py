@@ -39,7 +39,7 @@ def main():
     num_classes = 100
 
     ## saving ##
-    path_norms = torch.zeros(widths.numel())
+    sigma_norms = torch.zeros(widths.numel())
     for w_ind, wdth in enumerate(widths):
         width = wdth.item()
 
@@ -56,12 +56,12 @@ def main():
         chckpt = torch.load(fpath + fpath2 + fname)
         model.load_state_dict(chckpt['state_dict'])
 
-        path_norms[w_ind] = sharpness_sigma(model, trainloader,
+        sigma_norms[w_ind] = sharpness_sigma(model, trainloader,
                                             use_cuda=use_cuda)
 
         print("width ", width, " done \n")
 
-    torch.save(path_norms, "./path_norms.pt")
+    torch.save(sigma_norms, "./resnet_sigma_norms.pt")
 
 
 if __name__ == '__main__':
