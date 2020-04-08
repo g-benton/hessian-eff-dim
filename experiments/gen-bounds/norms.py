@@ -18,8 +18,10 @@ def lp_path_norm(model, device, p=2, input_size=[3, 32, 32]):
     return (tmp_model(data_ones).sum() ** (1 / p )).item()
 
 
-def perturb_model(model, sigma, n_pars):
+def perturb_model(model, sigma, n_pars, use_cuda):
     perturb = torch.randn(n_pars) * sigma
+    if use_cuda:
+        perturb = perturb.cuda()
     perturb = utils.unflatten_like(perturb.unsqueeze(0), model.parameters())
 
     for i, par in enumerate(model.parameters()):
@@ -27,10 +29,12 @@ def perturb_model(model, sigma, n_pars):
 
     return
 
-def compute_accuracy(model, dataloader, n_batch_samples):
+def compute_accuracy(model, dataloader, n_batch_samples, use_cuda):
     accuracy = 0
     for batch in range(n_batch_samples):
         images, labels = next(iter(dataloader))
+        if use_cuda:
+            images, labels = images.cuda(), labels.cuda()
         preds = model(images).max(-1)[1]
         accuracy += torch.where(preds == labels)[0].numel()
 
@@ -38,13 +42,13 @@ def compute_accuracy(model, dataloader, n_batch_samples):
 
 
 
-def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
+def sharpness_sigma(model, trainloader, target_deviate=0.01, resample_sigma=10,
                     n_batch_samples=10, n_midpt_rds=20, upper=5., lower=0.,
                     bound_eps=1e-3, discrep_eps=1e-2,
                     use_cuda=False):
 
     ## compute training accuracy ##
-    train_accuracy = compute_accuracy(model, trainloader, n_batch_samples)
+    train_accuracy = compute_accuracy(model, trainloader, n_batch_samples, use_cuda)
 
     ## store saved pars ##
     saved_pars = model.state_dict()
@@ -57,9 +61,9 @@ def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
 
         ## compute estimate of error with perturbed parameters
         rnd_errors = torch.zeros(resample_sigma)
-        perturb_model(model, midpt, n_pars)
+        perturb_model(model, midpt, n_pars, use_cuda)
         for rnd in range(resample_sigma):
-            rnd_errors[rnd] = compute_accuracy(model, trainloader, n_batch_samples)
+            rnd_errors[rnd] = compute_accuracy(model, trainloader, n_batch_samples, use_cuda)
 
         ## how much has perturbation changed
         rnd_error = rnd_errors.mean()
@@ -68,7 +72,7 @@ def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
         if ((upper - lower) < bound_eps) or (discrepancy < discrep_eps):
             return midpt
 
-        elif rnd_error > target_deviate:
+        elif discrepancy > target_deviate:
             ## can cutoff the upper half
             upper = midpt
             # print("cutoff upper\n")
