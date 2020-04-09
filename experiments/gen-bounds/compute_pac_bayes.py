@@ -5,17 +5,13 @@ import hess
 from hess.nets import PreActBlock, PreActResNet
 import torchvision
 from torchvision import transforms
-<<<<<<< HEAD
-from norms import sharpness_sigma
-=======
 from norms import lp_path_norm
->>>>>>> 98a942f6458fc436d1bbe082e705a4e57d5cb8be
+from hess import utils
 
 def main():
 
 
     use_cuda = torch.cuda.is_available()
-    print("use cuda = ", use_cuda)
 
 
     ## load in a loader just for sizing ##
@@ -29,19 +25,13 @@ def main():
         ]
     )
 
-    data_dir = '/misc/vlgscratch4/WilsonGroup/greg_b/datasets/cifar100/'
-    trainset = torchvision.datasets.CIFAR100(root=data_dir, train=True,
-                                            download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=128,
-                                              shuffle=True, num_workers=2)
-
-    input_size = next(iter(trainloader))[0].shape
     ## model sizes ##
     widths = torch.arange(1, 66, 1)
     num_classes = 100
 
     ## saving ##
-    sigma_norms = torch.zeros(widths.numel())
+    weight_norms = torch.zeros(widths.numel())
+    n_pars = torch.zeros(widths.numel())
     for w_ind, wdth in enumerate(widths):
         width = wdth.item()
 
@@ -57,13 +47,14 @@ def main():
 
         chckpt = torch.load(fpath + fpath2 + fname)
         model.load_state_dict(chckpt['state_dict'])
-
-        sigma_norms[w_ind] = sharpness_sigma(model, trainloader,
-                                            use_cuda=use_cuda)
+        pars = utils.flatten(model.parameters())
+        weight_norms[w_ind] = pars.norm()
+        n_pars[w_ind] = sum([p.numel() for p in model.parameters()])
 
         print("width ", width, " done \n")
 
-    torch.save(sigma_norms, "./resnet_sigma_norms.pt")
+    torch.save(weight_norms, "./resnet_weight_norms.pt")
+    torch.save(n_pars, "./resnet_n_pars.pt")
 
 
 if __name__ == '__main__':

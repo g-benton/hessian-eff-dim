@@ -2,7 +2,7 @@ import math
 import torch
 import torchvision
 import hess
-from hess.nets import PreActBlock, PreActResNet
+from hess.nets import ConvNetDepth
 import torchvision
 from torchvision import transforms
 from norms import lp_path_norm
@@ -35,33 +35,36 @@ def main():
     input_size = next(iter(trainloader))[0].shape
 
     ## model sizes ##
-    widths = torch.arange(1, 66, 1)
+    depths = torch.arange(9)
+    widths = torch.arange(4, 65, 4)
+
     num_classes = 100
 
     ## saving ##
-    sigma_norms = torch.zeros(widths.numel())
-    for w_ind, wdth in enumerate(widths):
-        width = wdth.item()
+    sigma_norms = torch.zeros(depths.numel(), widths.numel())
 
-        print("width ", width, " starting")
-        model = PreActResNet(PreActBlock, [2, 2, 2, 2], num_classes=num_classes,
-                            init_channels=width)
-        if use_cuda:
-            model = model.cuda()
+    for d_ind, dpth in enumerate(depths):
+        for w_ind, wdth in enumerate(widths):
+            depth = dpth.item()
+            width = wdth.item()
 
-        fpath = '/misc/vlgscratch4/WilsonGroup/greg_b/data/resnet_training_data/'
-        fpath2 = "resnet_" + str(width)
-        fname = "/trial_0/checkpoint-200.pt"
+            print("depth ", depth, " width ", width, " starting")
+            model = ConvNetDepth(num_classes=num_classes, c=width, max_depth=depth)
+            if use_cuda:
+                model = model.cuda()
 
-        chckpt = torch.load(fpath + fpath2 + fname)
-        model.load_state_dict(chckpt['state_dict'])
+            fpath = './width-depth-checkpoints/'
+            fname = "depth_" + str(depth) + "_width_" + str(width) + "_checkpt.pt"
 
-        sigma_norms[w_ind] = sharpness_sigma(model, trainloader,
-                                            use_cuda=use_cuda)
+            chckpt = torch.load(fpath + fname)
+            model.load_state_dict(chckpt['state_dict'])
 
-        print("width ", width, " done \n")
+            sigma_norms[w_ind, d_ind] = sharpness_sigma(model, trainloader,
+                                                use_cuda=use_cuda)
 
-    torch.save(sigma_norms, "./resnet_sigma_norms.pt")
+            print("depth ", depth, " width ", width, " done\n")
+
+        torch.save(sigma_norms, "./width_depth_sigma_norms.pt")
 
 
 if __name__ == '__main__':
