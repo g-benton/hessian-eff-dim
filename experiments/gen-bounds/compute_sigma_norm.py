@@ -5,14 +5,12 @@ import hess
 from hess.nets import ConvNetDepth
 import torchvision
 from torchvision import transforms
-from norms import lp_path_norm
+from norms import perturb_model, compute_accuracy, sharpness_sigma
 
 def main():
 
 
     use_cuda = torch.cuda.is_available()
-    if use_cuda:
-        torch.set_default_tensor_type(torch.cuda.FloatTensor)
 
 
     ## load in a loader just for sizing ##
@@ -26,9 +24,9 @@ def main():
         ]
     )
 
-    data_dir = '/misc/vlgscratch4/WilsonGroup/greg_b/datasets/cifar100/'
+    data_dir = '/datasets/cifar100/'
     trainset = torchvision.datasets.CIFAR100(root=data_dir, train=True,
-                                            download=True, transform=transform)
+                                            download=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=128,
                                               shuffle=True, num_workers=2)
 
@@ -53,13 +51,13 @@ def main():
             if use_cuda:
                 model = model.cuda()
 
-            fpath = './width-depth-checkpoints/'
+            fpath = './saved-outputs/width-depth-checkpoints/'
             fname = "depth_" + str(depth) + "_width_" + str(width) + "_checkpt.pt"
 
             chckpt = torch.load(fpath + fname)
             model.load_state_dict(chckpt['state_dict'])
 
-            sigma_norms[w_ind, d_ind] = sharpness_sigma(model, trainloader,
+            sigma_norms[d_ind, w_ind] = sharpness_sigma(model, trainloader,
                                                 use_cuda=use_cuda)
 
             print("depth ", depth, " width ", width, " done\n")
