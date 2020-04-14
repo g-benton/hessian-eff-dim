@@ -67,6 +67,9 @@ parser.add_argument(
 parser.add_argument(
     "--depth", type=int, default=3, help="depth of convnet"
 )
+parser.add_argument(
+    "--cpu", action="store_true", help="whether to perform lanczos on the cpu",
+)
 args = parser.parse_args()
 
 torch.backends.cudnn.benchmark = True
@@ -120,7 +123,7 @@ kwargs = {"nsteps": args.nsteps}
 
 # TODO: change this to hess.utils
 max_eval, min_eval, hvps, pos_evals, neg_evals, pos_bases = min_max_fn(
-    model, loader, criterion, use_cuda=True, verbose=True, **kwargs
+    model, loader, criterion, use_cuda=not args.cpu, verbose=True, **kwargs
 )
 
 if neg_evals is not None:

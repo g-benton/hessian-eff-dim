@@ -17,7 +17,7 @@ from hess.utils import flatten, unflatten_like, eval_hess_vec_prod, gradtensor_t
 #                  For computing Eigenvalues of Hessian
 ################################################################################
 def min_max_hessian_eigs(
-    net, dataloader, criterion, rank=0, use_cuda=False, verbose=False, nsteps=100,
+    net, dataloader, criterion, rank=0, use_cuda=True, verbose=False, nsteps=100,
     return_evecs=False
 ):
     """
@@ -44,22 +44,30 @@ def min_max_hessian_eigs(
         vec = unflatten_like(vec.t(), params)
 
         start_time = time.time()
-        eval_hess_vec_prod(vec, params, net, criterion, dataloader=dataloader, use_cuda=use_cuda)
+        eval_hess_vec_prod(vec, params, net, criterion, dataloader=dataloader, use_cuda=True)
         prod_time = time.time() - start_time
         if verbose and rank == 0:
             print("   Iter: %d  time: %f" % (hess_vec_prod.count, prod_time))
         out = gradtensor_to_tensor(net)
+        if not use_cuda:
+            out = out.cpu()
+
         return out.unsqueeze(1) / nb
 
     hess_vec_prod.count = 0
     if verbose and rank == 0:
         print("Rank %d: computing max eigenvalue" % rank)
+    if use_cuda:
+        device = params[0].device
+    else:
+        print(params[0].dtype)
+        device = torch.zeros(1).device
 
     # use lanczos to get the t and q matrices out
     pos_q_mat, pos_t_mat = lanczos_tridiag(
         hess_vec_prod,
         nsteps,
-        device=params[0].device,
+        device=device,
         dtype=params[0].dtype,
         matrix_shape=(N, N),
     )
