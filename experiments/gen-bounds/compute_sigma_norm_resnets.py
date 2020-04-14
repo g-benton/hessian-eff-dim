@@ -5,11 +5,7 @@ import hess
 from hess.nets import PreActBlock, PreActResNet
 import torchvision
 from torchvision import transforms
-<<<<<<< HEAD
 from norms import sharpness_sigma
-=======
-from norms import lp_path_norm
->>>>>>> 98a942f6458fc436d1bbe082e705a4e57d5cb8be
 
 def main():
 

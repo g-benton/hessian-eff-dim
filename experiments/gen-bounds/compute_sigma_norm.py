@@ -24,7 +24,7 @@ def main():
         ]
     )
 
-    data_dir = '/datasets/cifar100/'
+    data_dir = '/misc/vlg.../WilsonGroup/greg_b/datasets/cifar100/'
     trainset = torchvision.datasets.CIFAR100(root=data_dir, train=True,
                                             download=False, transform=transform)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=128,
@@ -51,6 +51,7 @@ def main():
             if use_cuda:
                 model = model.cuda()
 
+            ## YOU'LL NEED TO CHANGE THIS FILE PATHING
             fpath = './saved-outputs/width-depth-checkpoints/'
             fname = "depth_" + str(depth) + "_width_" + str(width) + "_checkpt.pt"
 

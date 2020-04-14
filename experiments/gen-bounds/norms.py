@@ -42,9 +42,9 @@ def compute_accuracy(model, dataloader, n_batch_samples, use_cuda):
 
 
 
-def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=10,
-                    n_batch_samples=10, n_midpt_rds=20, upper=2., lower=0.,
-                    bound_eps=1e-3, discrep_eps=1e-2,
+def sharpness_sigma(model, trainloader, target_deviate=0.1, resample_sigma=20,
+                    n_batch_samples=10, n_midpt_rds=20, upper=1., lower=0.,
+                    bound_eps=1e-3, discrep_eps=1e-3,
                     use_cuda=False):
 
     ## compute training accuracy ##
