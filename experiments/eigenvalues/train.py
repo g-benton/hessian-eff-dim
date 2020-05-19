@@ -95,7 +95,7 @@ def train_epoch(model, loaders, criterion, optimizer, epoch, end_epoch,
 
     time_ep = time.time()
 
-    lr = training_utils.schedule(epoch, lr_init, end_epoch, swa=False)
+    lr = training_utils.schedule(epoch, lr_init, 500, swa=False)
     training_utils.adjust_learning_rate(optimizer, lr)
     train_res = training_utils.train_epoch(loaders["train"], model, criterion, optimizer)
     if (
