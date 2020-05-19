@@ -117,7 +117,7 @@ def get_hessian(train_x, train_y, loss, model, use_cuda=False):
 
         base_vec = unflatten_like(base_vec, model.parameters())
         eval_hess_vec_prod(base_vec,
-                                # model.parameters(),
+                                model.parameters(),
                                 net=model,
                                 criterion=loss,
                                 inputs=train_x, targets=train_y)
@@ -149,8 +149,8 @@ def get_hessian_eigs(loss, model, mask=None,
             mask = torch.ones(total_pars, dtype=p.dtype, device=p.device)
 
         def hvp(rhs):
-            padded_rhs = unflatten_like(rhs, model.parameters())
-            eval_hess_vec_prod(padded_rhs, net=model,
+            padded_rhs = unflatten_like(rhs.t(), model.parameters())
+            eval_hess_vec_prod(padded_rhs, model.parameters(), net=model,
                                criterion=loss, inputs=train_x,
                                targets=train_y, dataloader=loader, use_cuda=use_cuda)
             full_hvp = gradtensor_to_tensor(model, include_bn=True)
