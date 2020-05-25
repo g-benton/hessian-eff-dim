@@ -14,7 +14,13 @@ Please cite our work if you find it useful:
 
 ### Introduction
 
-In this paper we examine the effective dimensionality of the Hessian of the loss (shortened to effective dimensionality) as a way to explain generalization performance in neural networks. We revisit an interpretation offered by MacKay (1992): the effective dimensionalilty describes the number of parameters determined by the data. Using this interpretation we find that across many architectures of varying sizes the effective dimensionality of the model provides a much better proxy for generalization than simply counting the number of parameters a model contains.
+In this paper we examine the effective dimensionality of the Hessian of the loss (shortened to effective dimensionality) as a way to explain generalization performance in neural networks. Effective dimensionality is computed as,
+
+<img src="https://render.githubusercontent.com/render/math?math=N_{eff}(\textrm{Hessian})=\sum_{i=1}^{j}\frac{\lambda_j}{\lambda_j%2B\alpha},">
+
+where <img src="https://render.githubusercontent.com/render/math?math=\lambda_j"> are the eigenvalues of the Hessian at the converged solution on the training loss and <img src="https://render.githubusercontent.com/render/math?math=\alpha"> is a regularization term (usually set to 1).
+We revisit an interpretation offered by MacKay (1992): the effective dimensionalilty describes the number of parameters determined by the data. 
+Using this interpretation we find that across many architectures of varying sizes the effective dimensionality of the model provides a much better proxy for generalization than simply counting the number of parameters a model contains.
 
 ![Effective Dimensionality and Generalization](plots/dnn_double_descent.png?raw=true "Effective Dimensionality and Generalization")
 
@@ -29,7 +35,11 @@ To install the package, run `python setup.py develop`. See dependencies in `requ
 
 #### Computing Effective Dimensionality
 
-To compute the effective dimensionality of a network you need only compute the dominant eigenvalues of the Hessian of the loss of the network. We provide code that will manage the eigenvalue computation for you using the Lanczos algorithm in `/experiments/eigenvalues/run_hess_eigs.py`. An example call to this script is as follows:
+To compute the effective dimensionality of a network you only need to compute the dominant eigenvalues of the Hessian of the loss of the network, and make a choice of the regularization term <img src="https://render.githubusercontent.com/render/math?math=\alpha">. 
+
+In practice we typically choose <img src="https://render.githubusercontent.com/render/math?math=\alpha=1"> for simplicity. However we show in the paper that for Bayesian Linear models the effective dimensionality corresponds the contraction of the posterior distribution when <img src="https://render.githubusercontent.com/render/math?math=\alpha"> is chosen to be the product of the number of datapoints _N_ and the prior variance. For neural networks an alternate choice of regularization constant is then  _N * (weight decay)_.
+
+We provide code that will manage the eigenvalue computation for you using the Lanczos algorithm in `/experiments/eigenvalues/run_hess_eigs.py`. An example call to this script is as follows:
 
 ```bash
 python run_hess_eigs.py --dataset=CIFAR100 --data_path=/path/to/dataset/ --model=ResNet18 \
