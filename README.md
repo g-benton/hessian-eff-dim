@@ -23,6 +23,20 @@ A resolution of double descent. We replicate the double descent behaviour of dee
 ![Effective Dimensionality, Width, and Depth](plots/width-depth-exp.png?raw=true "Effective Dimensionality, Width, and Depth")
 **Left**: Effective dimensionality as a function of model width and depth for a CNN on CIFAR100. **Center**: Test loss as a function of model width and depth. **Right**: Train loss as a function of model width and depth. Yellow level curves represent equal parameter counts (1e5, 2e5, 4e5, 1.6e6). The green curve separates models with near-zero training loss. Effective dimensionality serves as a good proxy for generalization for models with low train loss. We see wide but shallow models overfit, providing low train loss, but high test loss and high effective dimensionality. For models with the same train loss, lower effective dimensionality can be viewed as a better compression of the data at the same fidelity. Thus depth provides a mechanism for compression, which leads to better generalization.
 
+### Package
+
+To install the package, run `python setup.py develop`. See dependencies in `requirements.txt`. You will need the latest version of PyTorch (>=1.0.0), and standard scipy/numpy builds. Most of the codebase is written to use a GPU if it finds one.
+
+#### Computing Effective Dimensionality
+
+To compute the effective dimensionality of a network you need only compute the dominant eigenvalues of the Hessian of the loss of the network. We provide code that will manage the eigenvalue computation for you using the Lanczos algorithm in `/experiments/eigenvalues/run_hess_eigs.py`. An example call to this script is as follows:
+
+```bash
+python run_hess_eigs.py --dataset=CIFAR100 --data_path=/path/to/dataset/ --model=ResNet18 \
+        --num_channels=$channels --file=your_saved_model.pt \
+        --save_path=your_output_eigenvalues.npz
+```
+
 #### Double Descent Experiments; Figures 1 and 2
 
 To reproduce Figures 1 and 2 in the paper you will need to train a number of models and compute their effective dimensionalities. The files and command line instructions to produce all results necessary to recreate both figures are in `/experiments/eigenvalues/`.
@@ -34,11 +48,6 @@ To produce the Figure 4 in the paper you will first need to generate the eigenva
 #### Loss Surface Experiments; Section 5
 
 To see all results from Section 5 of the paper just run `/notebooks/two_spirals.ipynb`. We provide similar results to those of Section 5 for the CIFAR10 dataset. All code needed to generate these results is contained in `experiments/cifar-homogeneity/` and `experiments/cifar-loss-surfaces/`, there are README files in those directories that walk through producing the relevant data and figures.
-
-### Package
-
-To install the package, run `python setup.py develop`. See dependencies in `requirements.txt`. You will need the latest version of PyTorch (>=1.0.0), and standard scipy/numpy builds. Most of the codebase is written to use a GPU if it finds one.
-
 
 ### References
 - MacKay, David JC. "Bayesian model comparison and backprop nets." Advances in neural information processing systems. 1992.
