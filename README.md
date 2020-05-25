@@ -37,6 +37,21 @@ python run_hess_eigs.py --dataset=CIFAR100 --data_path=/path/to/dataset/ --model
         --save_path=your_output_eigenvalues.npz
 ```
 
+If you just wish to use the codebase to compute effective dimensionality of a neural network, the easiest way to proceed is to modify the `experiments/eigenvalues/run_hess_eigs.py` script to allow for loading and computation of your specific model on a dataset.
+You will then be able to use the command line args to compute as many eigenvalues as you want and output them into a npz file.
+Then, 
+```python
+import numpy as np
+eigs = np.load('path.npz')['pos_evals']
+
+def eff_dim(x, s = 1.):
+    x = x[x!=1.] #remove eigenvalues that didnt converge from the lanczos computation to make things less noisy
+    return np.sum(x / (x + s))
+    
+eff_dim(eigs)
+```
+
+
 #### Double Descent Experiments; Figures 1 and 2
 
 To reproduce Figures 1 and 2 in the paper you will need to train a number of models and compute their effective dimensionalities. The files and command line instructions to produce all results necessary to recreate both figures are in `/experiments/eigenvalues/`.
