@@ -18,7 +18,7 @@ In this paper we examine the effective dimensionality of the Hessian of the loss
 
 <img src="https://render.githubusercontent.com/render/math?math=N_{eff}(\textrm{Hessian})=\sum_{i=1}^{j}\frac{\lambda_j}{\lambda_j%2B\alpha},">
 
-where <img src="https://render.githubusercontent.com/render/math?math=\lambda_j"> are the eigenvalues of the Hessian at the converged solution on the training loss and <img src="https://render.githubusercontent.com/render/math?math=\alpha"> is a regularization term (usually set to 1).
+where <img src="https://render.githubusercontent.com/render/math?math=\lambda_j"> are the eigenvalues of the Hessian at the converged solution on the training loss and <img src="https://render.githubusercontent.com/render/math?math=\alpha"> is a regularization term.
 We revisit an interpretation offered by MacKay (1992): the effective dimensionalilty describes the number of parameters determined by the data. 
 Using this interpretation we find that across many architectures of varying sizes the effective dimensionality of the model provides a much better proxy for generalization than simply counting the number of parameters a model contains.
 
@@ -37,7 +37,7 @@ To install the package, run `python setup.py develop`. See dependencies in `requ
 
 To compute the effective dimensionality of a network you only need to compute the dominant eigenvalues of the Hessian of the loss of the network, and make a choice of the regularization term <img src="https://render.githubusercontent.com/render/math?math=\alpha">. 
 
-In practice we typically choose <img src="https://render.githubusercontent.com/render/math?math=\alpha=1"> for simplicity. However we show in the paper that for Bayesian Linear models the effective dimensionality corresponds the contraction of the posterior distribution when <img src="https://render.githubusercontent.com/render/math?math=\alpha"> is chosen to be the product of the number of datapoints _N_ and the prior variance. For neural networks an alternate choice of regularization constant is then  _N * (weight decay)_.
+In the paper that for Bayesian Linear models the effective dimensionality corresponds the contraction of the posterior distribution when <img src="https://render.githubusercontent.com/render/math?math=\alpha"> is chosen to be the product of the number of datapoints _N_ and the prior variance. For neural networks an alternate choice of regularization constant is then  _N * (weight decay)_, which is a reasonable heuristic for <img src="https://render.githubusercontent.com/render/math?math=\alpha">. In general, the qualitative behaviour of effective dimensionality is quite robust to the value of <img src="https://render.githubusercontent.com/render/math?math=\alpha"> above a certain threshold (a value of 1 is reasonable in the double descent and width-depth experiments). Often the eigenspectrum of the Hessian contains a kink such that separates a small number of relatively larger eigenvalues from the rest. One would want to choose an <img src="https://render.githubusercontent.com/render/math?math=\alpha"> larger than the smallest ''large'' eigenvalue, so that effective dimension is measuring the number of significantly determined directions.
 
 We provide code that will manage the eigenvalue computation for you using the Lanczos algorithm in `/experiments/eigenvalues/run_hess_eigs.py`. An example call to this script is as follows:
 
