@@ -14,11 +14,11 @@ else:
 setup(
     name='hess',
     version='alpha',
-    description=('Repo for Hessian Loss Surface Inference'),
+    description=('Repo for Hessians and Effective Dimensionality'),
     long_description=long_description,
-    author='Wesley Maddox, Greg Benton, Andrew Wilson',
-    author_email='wjm363@nyu.edu',
-    url='https://github.com/g-benton/hessian-eff-dim',
+    author='anonymized',
+    author_email='none',
+    url='none',
     license='Apache-2.0',
     packages=['hess'],
    install_requires=[

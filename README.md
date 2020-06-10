@@ -1,15 +1,7 @@
 ## Rethinking Parameter Counting: Effective Dimensionality Revisted
 
-This repo contains the code needed to replicate the experiments in **Rethinking Parameter Counting: Effective Dimensionality Revisted** by [Wesley Maddox](https://wjmaddox.github.io), [Gregory Benton](https://g-benton.github.io/), and [Andrew Gordon Wilson](https://cims.nyu.edu/~andrewgw/).
+This repo contains the code needed to replicate the experiments in **Rethinking Parameter Counting: Effective Dimensionality Revisted** by anonymous authors.
 
-Please cite our work if you find it useful:
-```
-@article{parametercounting,
-  title={Rethinking Parameter Counting: Effective Dimensionality Revisted},
-  author={Maddox, Wesley J. and Benton, Gregory and Wilson, Andrew Gordon},
-  journal={arXiv preprint arXiv:2003.02139},
-  year={2020}
-}
 ```
 
 ### Introduction
@@ -76,12 +68,10 @@ To see all results from Section 5 of the paper just run `/notebooks/two_spirals.
 
 ### References
 - MacKay, David JC. "Bayesian model comparison and backprop nets." Advances in neural information processing systems. 1992.
-- Maddox et al. "Rethinking Parameter Counting in Deep Models: Effective Dimensionality Revisited." 2020 (https://arxiv.org/abs/2003.02139)
 
 ## References for Code Base
 
 Model implementations:
-  - PreResNet: https://github.com/bearpaw/pytorch-classification
   - ResNet18: https://github.com/kuangliu/pytorch-cifar/blob/master/models/preact_resnet.py, but copied from https://gitlab.com/harvard-machine-learning/double-descent/-/blob/master/models/resnet18k.py
   - CNNs: copied from https://gitlab.com/harvard-machine-learning/double-descent/-/blob/master/models/mcnn.py 
   
