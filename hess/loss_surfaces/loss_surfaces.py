@@ -54,7 +54,7 @@ def get_plane(basis, scale=0.1):
     vu = dir2.squeeze().dot(dir1.squeeze())
     uu = dir1.squeeze().dot(dir1.squeeze())
 
-    dir2 = dir2 - dir2.mul(vu).div(uu)
+    dir2 = dir2 - dir1.mul(vu).div(uu)
 
     ## normalize ##
     dir1 = dir1.div(dir1.norm()) * scale
