@@ -23,7 +23,7 @@ setup(
     packages=['hess'],
    install_requires=[
     'matplotlib==3.0.3',
-    'setuptools==41.0.0',
+    'setuptools==65.5.1',
     'scipy>=1.2.1',
     'torch>=1.0.1',
     'numpy>=1.16.2',
